@@ -1,0 +1,469 @@
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
+    <script>
+
+        var abi = [
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "getLastPayout",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [
+        			{
+        				"name": "position",
+        				"type": "uint256"
+        			}
+        		],
+        		"name": "getUBIAtCycle",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "getAmountOfBasicIncome",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [
+        			{
+        				"name": "message",
+        				"type": "bytes32"
+        			}
+        		],
+        		"name": "sponsorVault",
+        		"outputs": [],
+        		"payable": true,
+        		"stateMutability": "payable",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "getMinimumPeriod",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "getTotalPaymentCycles",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [
+        			{
+        				"name": "adjustedWeiToDollarCent",
+        				"type": "uint256"
+        			}
+        		],
+        		"name": "createUBI",
+        		"outputs": [],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "getAmountOfCitizens",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [],
+        		"name": "renounceOwnership",
+        		"outputs": [],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "getAvailableEther",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "owner",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "address"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "isOwner",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "bool"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [
+        			{
+        				"name": "citizen",
+        				"type": "address"
+        			}
+        		],
+        		"name": "getRightFromPaymentsCycle",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [
+        			{
+        				"name": "password",
+        				"type": "bytes32"
+        			}
+        		],
+        		"name": "registerCitizen",
+        		"outputs": [],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "function"
+        	},
+        	{
+        		"constant": true,
+        		"inputs": [],
+        		"name": "getPromisedEther",
+        		"outputs": [
+        			{
+        				"name": "",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "view",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [
+        			{
+        				"name": "citizens",
+        				"type": "address[]"
+        			},
+        			{
+        				"name": "beneficiaries",
+        				"type": "address[]"
+        			},
+        			{
+        				"name": "beneficiaryNotEqualToCitizen",
+        				"type": "bool[]"
+        			}
+        		],
+        		"name": "pushClaimUBI",
+        		"outputs": [],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [
+        			{
+        				"name": "_useablePasswordHashes",
+        				"type": "bytes32[]"
+        			}
+        		],
+        		"name": "createUsabelPasswords",
+        		"outputs": [],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [],
+        		"name": "claimUBIPublic",
+        		"outputs": [],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [
+        			{
+        				"name": "newOwner",
+        				"type": "address"
+        			}
+        		],
+        		"name": "transferOwnership",
+        		"outputs": [],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "function"
+        	},
+        	{
+        		"constant": false,
+        		"inputs": [
+        			{
+        				"name": "amount",
+        				"type": "uint256"
+        			}
+        		],
+        		"name": "claimMaintenanceFunds",
+        		"outputs": [],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "function"
+        	},
+        	{
+        		"inputs": [
+        			{
+        				"name": "initialAB",
+        				"type": "uint256"
+        			},
+        			{
+        				"name": "initialMinimumPeriod",
+        				"type": "uint256"
+        			},
+        			{
+        				"name": "initialWeiToDollarCent",
+        				"type": "uint256"
+        			}
+        		],
+        		"payable": false,
+        		"stateMutability": "nonpayable",
+        		"type": "constructor"
+        	},
+        	{
+        		"anonymous": false,
+        		"inputs": [
+        			{
+        				"indexed": false,
+        				"name": "payee",
+        				"type": "address"
+        			},
+        			{
+        				"indexed": false,
+        				"name": "message",
+        				"type": "bytes32"
+        			},
+        			{
+        				"indexed": false,
+        				"name": "amount",
+        				"type": "uint256"
+        			}
+        		],
+        		"name": "LogPaymentReceived",
+        		"type": "event"
+        	},
+        	{
+        		"anonymous": false,
+        		"inputs": [
+        			{
+        				"indexed": true,
+        				"name": "previousOwner",
+        				"type": "address"
+        			},
+        			{
+        				"indexed": true,
+        				"name": "newOwner",
+        				"type": "address"
+        			}
+        		],
+        		"name": "OwnershipTransferred",
+        		"type": "event"
+        	}
+        ]
+
+        var address = "0xed41e6465a17844d5bef87defcfcff7d521f667a";
+        let currentAccount;
+
+
+        var web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/87b0d4dd4f204f72b7a1e6391ff15ec1"));
+
+        var contractInstance = new web3.eth.Contract(abi,address);
+
+
+//----------
+
+        // // get the number of transactions sent so far so we can create a fresh nonce
+        // web3.eth.getTransactionCount('0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8').then(txCount => {
+        //
+        //     encoded = contractInstance.methods.claimMaintenanceFunds(504184824563130).encodeABI()
+        //
+        //     var tx = {
+        //         nonce: web3.utils.toHex(txCount),
+        //         to : address,
+        //         from: '0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8',
+        //         data : encoded,
+        //         gasLimit: 1000000,
+        //         gasPrice: web3.utils.toHex(10e9),
+        //         value: 0,
+        //         chainId: "3"
+        //     }
+        //
+        //     web3.eth.accounts.signTransaction(tx, "0x88E04FF93132D0235CA740B426200041A9E3DB57164D7EF40DF532E5A2534E09").then(signed => {
+        //         web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
+        //     });
+        //
+        // })
+
+//----------
+
+//----------
+
+        // // get the number of transactions sent so far so we can create a fresh nonce
+        // web3.eth.getTransactionCount('0x69Bf70B7eB61a16d79e4Ae4e0c8dD95B75883147').then(txCount => {
+        //
+        //     encoded = contractInstance.methods.registerCitizen('0x70617373776f7264320000000000000000000000000000000000000000000000').encodeABI()
+        //
+        //     var tx = {
+        //         nonce: web3.utils.toHex(txCount),
+        //         to : address,
+        //         from: '0x69Bf70B7eB61a16d79e4Ae4e0c8dD95B75883147',
+        //         data : encoded,
+        //         gasLimit: 1000000,
+        //         gasPrice: web3.utils.toHex(10e9),
+        //         value: 0,
+        //         chainId: "3"
+        //     }
+        //
+        //     web3.eth.accounts.signTransaction(tx, "0xBECB95F9612818B774BADBDACBC47C6C61CE5A25F6CD8418F748480154C85226").then(signed => {
+        //         web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
+        //     });
+        //
+        // })
+
+        //----------
+
+                // // get the number of transactions sent so far so we can create a fresh nonce
+                // web3.eth.getTransactionCount('0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8').then(txCount => {
+                //
+                //     encoded = contractInstance.methods.createUBI(61647842369078).encodeABI()
+                //
+                //     var tx = {
+                //         nonce: web3.utils.toHex(txCount),
+                //         to : address,
+                //         from: '0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8',
+                //         data : encoded,
+                //         gasLimit: 1000000,
+                //         gasPrice: web3.utils.toHex(10e9),
+                //         value: 0,
+                //         chainId: "3"
+                //     }
+                //
+                //     web3.eth.accounts.signTransaction(tx, "0x88E04FF93132D0235CA740B426200041A9E3DB57164D7EF40DF532E5A2534E09").then(signed => {
+                //         web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
+                //     });
+                //
+                // })
+                //
+                //----------
+
+                        // get the number of transactions sent so far so we can create a fresh nonce
+                        web3.eth.getTransactionCount('0x69Bf70B7eB61a16d79e4Ae4e0c8dD95B75883147').then(txCount => {
+
+                            encoded = contractInstance.methods.claimUBIPublic().encodeABI()
+
+                            var tx = {
+                                nonce: web3.utils.toHex(txCount),
+                                to : address,
+                                from: '0x69Bf70B7eB61a16d79e4Ae4e0c8dD95B75883147',
+                                data : encoded,
+                                gasLimit: 1000000,
+                                gasPrice: web3.utils.toHex(10e9),
+                                value: 0,
+                                chainId: "3"
+                            }
+
+                            web3.eth.accounts.signTransaction(tx, "0xBECB95F9612818B774BADBDACBC47C6C61CE5A25F6CD8418F748480154C85226").then(signed => {
+                                web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
+                            });
+
+                        })
+
+    </script>
+</head>
+
+<body>
+        hallo
+</body>
+
+</html>
