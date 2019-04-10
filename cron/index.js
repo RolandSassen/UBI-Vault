@@ -1,9 +1,12 @@
-<html>
-<head>
-    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
-    <script>
+// index.js
+    const cron = require("node-cron");
+    const express = require("express");
+    const fs = require("fs");
 
-        var abi = [
+    const web3 = require('web3')
+
+
+    var abi = [
 	{
 		"constant": true,
 		"inputs": [],
@@ -536,118 +539,59 @@
 	}
 ]
 
-        var address = "0xdb854e3681f31c950b40368329bf2f8a119286aa";
-        let currentAccount;
+    app = express();
 
 
-        var web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/87b0d4dd4f204f72b7a1e6391ff15ec1"));
+    // // schedule tasks to be run on the server
+    //    cron.schedule("* * * * *", function() {
+    //      console.log("running a task every minute");
+    //    });
+    //
+    //    app.listen(3128);
 
-        var contractInstance = new web3.eth.Contract(abi,address);
 
 
-//----------
 
-        // // get the number of transactions sent so far so we can create a fresh nonce
-        // web3.eth.getTransactionCount('0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8').then(txCount => {
-        //
-        //     encoded = contractInstance.methods.claimMaintenanceFunds(504184824563130).encodeABI()
-        //
-        //     var tx = {
-        //         nonce: web3.utils.toHex(txCount),
-        //         to : address,
-        //         from: '0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8',
-        //         data : encoded,
-        //         gasLimit: 1000000,
-        //         gasPrice: web3.utils.toHex(10e9),
-        //         value: 0,
-        //         chainId: "3"
-        //     }
-        //
-        //     web3.eth.accounts.signTransaction(tx, "0x88E04FF93132D0235CA740B426200041A9E3DB57164D7EF40DF532E5A2534E09").then(signed => {
-        //         web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
-        //     });
-        //
-        // })
+    app.get('/register',function(req,res){
+            console.log('start');
+            var scAddress = '0x260eb7dbdd9a37a9d182ad1fbf1755d03c5cb194';
 
-//----------
+            //test account and smart contract owner
+            var fromAddress = '0xCE2ac0A3c599812D8068E6b3D40A84B7AffE7E49';
+            var privateKey = '0x4A14D4A10D6232D7353A6795FE54283493009EE61EFFAD935A20A6519D826BA6';
 
-//----------
+            //Infura HttpProvider Endpoint
+            var web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/87b0d4dd4f204f72b7a1e6391ff15ec1"));
 
-        // // get the number of transactions sent so far so we can create a fresh nonce
-        // web3.eth.getTransactionCount('0x69Bf70B7eB61a16d79e4Ae4e0c8dD95B75883147').then(txCount => {
-        //
-        //     encoded = contractInstance.methods.registerCitizen('0x70617373776f7264320000000000000000000000000000000000000000000000').encodeABI()
-        //
-        //     var tx = {
-        //         nonce: web3.utils.toHex(txCount),
-        //         to : address,
-        //         from: '0x69Bf70B7eB61a16d79e4Ae4e0c8dD95B75883147',
-        //         data : encoded,
-        //         gasLimit: 1000000,
-        //         gasPrice: web3.utils.toHex(10e9),
-        //         value: 0,
-        //         chainId: "3"
-        //     }
-        //
-        //     web3.eth.accounts.signTransaction(tx, "0xBECB95F9612818B774BADBDACBC47C6C61CE5A25F6CD8418F748480154C85226").then(signed => {
-        //         web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
-        //     });
-        //
-        // })
+            var contractInstance = new web3js.eth.Contract(abi,scAddress);
 
-        //----------
+            web3js.eth.getTransactionCount(fromAddress).then(txCount => {
 
-                // get the number of transactions sent so far so we can create a fresh nonce
-                web3.eth.getTransactionCount('0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8').then(txCount => {
+                encoded = contractInstance.methods.registerCitizenOwner('0x855af95f5553e44798480C1cBDBA66859b14cFb8').encodeABI()
 
-                    encoded = contractInstance.methods.createUBI(61647842369078).encodeABI()
+                console.log('nonce');
+                console.log(txCount);
 
-                    var tx = {
-                        nonce: web3.utils.toHex(txCount),
-                        to : address,
-                        from: '0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8',
-                        data : encoded,
-                        gasLimit: 1000000,
-                        gasPrice: web3.utils.toHex(10e9),
-                        value: 0,
-                        chainId: "3"
-                    }
+                var tx = {
+                    nonce: web3js.utils.toHex(txCount),
+                    to : scAddress,
+                    from: fromAddress,
+                    data : encoded,
+                    gasLimit: 1000000,
+                    gasPrice: web3js.utils.toHex(10e9),
+                    value: 0,
+                    chainId: "3"
+                }
 
-                    web3.eth.accounts.signTransaction(tx, "0x88E04FF93132D0235CA740B426200041A9E3DB57164D7EF40DF532E5A2534E09").then(signed => {
-                        web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
-                    });
+                web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
+                    console.log('signed');
+                    console.log(signed.rawTransaction);
+                    web3js.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
+                    console.log('receipt');
 
-                })
+                });
 
-                //----------
+            })
 
-                        // // get the number of transactions sent so far so we can create a fresh nonce
-                        // web3.eth.getTransactionCount('0x69Bf70B7eB61a16d79e4Ae4e0c8dD95B75883147').then(txCount => {
-                        //
-                        //     encoded = contractInstance.methods.claimUBIPublic().encodeABI()
-                        //
-                        //     var tx = {
-                        //         nonce: web3.utils.toHex(txCount),
-                        //         to : address,
-                        //         from: '0x69Bf70B7eB61a16d79e4Ae4e0c8dD95B75883147',
-                        //         data : encoded,
-                        //         gasLimit: 1000000,
-                        //         gasPrice: web3.utils.toHex(10e9),
-                        //         value: 0,
-                        //         chainId: "3"
-                        //     }
-                        //
-                        //     web3.eth.accounts.signTransaction(tx, "0xBECB95F9612818B774BADBDACBC47C6C61CE5A25F6CD8418F748480154C85226").then(signed => {
-                        //         web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
-                        //     });
-                        //
-                        // })
-
-    </script>
-</head>
-
-<body>
-        hallo
-</body>
-
-</html>
+        });
+    app.listen(3000, () => console.log('Example app listening on port 3000!'))
