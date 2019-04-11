@@ -26,55 +26,119 @@
     var privateKey = '0x' + provider.wallets[fromAddress]._privKey.toString('hex')
     //privateKey = '0x' + privateKey.toString('hex')
     var contractInstance = new web3js.eth.Contract(ubiVault_artifacts.abi,scAddress);
+    // replace new web3js.eth.Contract(ubiVault_artifacts.abi,scAddress) below when we need a websocket (event watching)
+    //web3js = new web3(new web3.providers.WebsocketProvider('wss://mainnet.infura.io/_ws'));
 
     // create an express app
     app = express();
-    //rivateKey = '0x'+ privateKey.toString('hex')
-    console.log(privateKey, web3js.eth.accounts.privateKeyToAccount(privateKey));
-    // replace line 20 with 22 when we need a websocket (event watching)
-    //web3js = new web3(new web3.providers.WebsocketProvider('wss://mainnet.infura.io/_ws'));
+    app.use(express.json());
 
-    app.get('/register',function(req,res){
 
-            web3js.eth.getTransactionCount(fromAddress).then(txCount => {
+    app.post('/registerCitizenOwner',function(req,res) {
+      let body = req.body
+      web3js.eth.getTransactionCount(fromAddress).then(txCount => {
 
-                encoded = contractInstance.methods.registerCitizenOwner('0x855af95f5553e44798480C1cBDBA66859b14cFb8').encodeABI()
+      encoded = contractInstance.methods.registerCitizenOwner(body.account).encodeABI()
 
-                console.log('nonce');
-                console.log(txCount);
+      var tx = {
+        nonce: web3js.utils.toHex(txCount),
+        to : scAddress,
+        from: fromAddress,
+        data : encoded,
+        gasLimit: 60000,
+        gasPrice: web3js.utils.toHex(12),
+        value: 0,
+        chainId: UBIVaultNetwork.toString(10)
+      }
 
-                var tx = {
-                    nonce: web3js.utils.toHex(txCount),
-                    to : scAddress,
-                    from: fromAddress,
-                    data : encoded,
-                    gasLimit: 60000,
-                    gasPrice: web3js.utils.toHex(12),
-                    value: 0,
-                    chainId: UBIVaultNetwork.toString(10)
-                }
+      web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
+      web3js.eth.sendSignedTransaction(signed.rawTransaction)
+        .once('transactionHash', function(hash) {
+          console.log('The transaction hash is: ',hash)
+        })
+        .once('receipt', function(receipt) {
+          console.log("The receipt is: ", receipt)
+        })
+        .on('confirmation', function(confNumber, receipt) {
 
-                console.log(tx)
+        })
+        .on('error', function(error) {
+          res.send("Error in sending the transaction", error)
+        })
+      });
+    })
+  });
 
-                web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
-                    console.log('signed');
-                    console.log(tx)
-                    console.log(signed.rawTransaction);
-                    web3js.eth.sendSignedTransaction(signed.rawTransaction)
-                      .once('transactionHash', function(hash) {
-                        console.log(hash)
-                      })
-                      .once('receipt', function(receipt) {
-                        console.log(receipt)
-                      })
-                      .on('confirmation', function(confNumber, receipt) {
+  app.post('/activateCitizen', async function(req,res) {
+    let body = req.body
+    let account = body.account
+    let secret = Math.floor(Math.random() * 100001);
+    let path = "./data/"+account
 
-                      })
-                      .on('error', function(error) {
-                        console.error(error)
-                      })
-                });
-            })
+    // return values
+    let retError = null
+    let retSecret = null
 
+    if(!fs.existsSync(path)) {
+      fs.writeFile(path, secret, function(err) {
+        if(err) {
+          retError = "Could not activate your account"
+        } else {
+          retSecret = secret
+        }
+      })
+    } else {
+      retError = "Account already activated"
+    }
+
+    res.json({"secret": retSecret, "error": retError})
+  });
+
+  app.post('/registerCitizen', async function(req,res) {
+    let body = req.body
+
+    let account = body.account
+    let secret = body.secret
+
+    let path = "./data/"+account
+
+    let retError = null
+    let retHash = null
+
+    let ret;
+    fs.readFile('./data/'+account, function (err, data) {
+      if (err) {
+        retError = "account not activated"
+      } else {
+        web3js.eth.getTransactionCount(fromAddress).then(txCount => {
+        encoded = contractInstance.methods.registerCitizenOwner(body.account).encodeABI()
+
+        var tx = {
+          nonce: web3js.utils.toHex(txCount),
+          to : scAddress,
+          from: fromAddress,
+          data : encoded,
+          gasLimit: 60000,
+          gasPrice: web3js.utils.toHex(12),
+          value: 0,
+          chainId: UBIVaultNetwork.toString(10)
+        }
+
+        web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
+        web3js.eth.sendSignedTransaction(signed.rawTransaction)
+        .once('transactionHash', function(hash) {
+          retHash = hash
+        })
+        .on('error', function(error) {
+          retError = error
+        })
         });
-    app.listen(3001, () => console.log('Example app listening on port 3000!'))
+      })
+      res.json({"data": retHash, "error": retError})
+    }
+        //content = data;
+  });
+});
+
+
+  app.listen(3000, () => console.log('Example app listening on port 3000!'))
