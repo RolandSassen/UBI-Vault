@@ -2,8 +2,11 @@
     const cron = require("node-cron");
     const express = require("express");
     const fs = require("fs");
+    require('dotenv').config();
 
     const web3 = require('web3')
+
+    let infurakey = process.env.INFURAKEY
 
 
     var abi = [
@@ -561,7 +564,7 @@
             var privateKey = '0x4A14D4A10D6232D7353A6795FE54283493009EE61EFFAD935A20A6519D826BA6';
 
             //Infura HttpProvider Endpoint
-            var web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/87b0d4dd4f204f72b7a1e6391ff15ec1"));
+            var web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/" + infurakey));
 
             var contractInstance = new web3js.eth.Contract(abi,scAddress);
 
