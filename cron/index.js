@@ -8,8 +8,11 @@
     const HDWalletProvider = require("truffle-hdwallet-provider");
 
     // environment variables
-    let infurakey = process.env.INFURAKEY
-    let mnemonic = process.env.MNEMONIC
+    // let infurakey = process.env.INFURAKEY
+    // let mnemonic = process.env.MNEMONIC
+
+    let infurakey = "92b504546c114dc79df96fb00e94073f";
+    let mnemonic = "flee pelican renew brain crush obvious science family chase table magnet blush";
 
     //Infura HttpProvider Endpoint
     var web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/" + infurakey));
@@ -49,7 +52,7 @@
         to : scAddress,
         from: fromAddress,
         data : encoded,
-        gasLimit: 60000,
+        gasLimit: 100000,
         gasPrice: 20000000000,
         value: 0,
         chainId: web3js.utils.toHex('3')
@@ -57,11 +60,10 @@
 
       console.log('TX is: ',tx, "Account from private key is: ", web3js.eth.accounts.privateKeyToAccount(privateKey).address, "fromAddress is: ", fromAddress)
 
-      console.log(tx)
-
       web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
         console.log('signed');
         console.log(tx)
+        console.log(privateKey);
         console.log(signed.rawTransaction);
         web3js.eth.sendSignedTransaction(signed.rawTransaction)
           .once('transactionHash', function(hash) {
@@ -81,44 +83,10 @@
 
     });
 
-
-    //   let body = req.body
-    //   web3js.eth.getTransactionCount(fromAddress).then(txCount => {
-    //
-    //   encoded = contractInstance.methods.registerCitizenOwner(body.account).encodeABI()
-    //
-    //   var tx = {
-    //     nonce: web3js.utils.toHex(txCount),
-    //     to : scAddress,
-    //     from: fromAddress,
-    //     data : encoded,
-    //     gasLimit: 60000,
-    //     gasPrice: web3js.utils.toHex(12),
-    //     value: 0,
-    //     chainId: UBIVaultNetwork.toString(10)
-    //   }
-    //
-    //   web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
-    //   web3js.eth.sendSignedTransaction(signed.rawTransaction)
-    //     .once('transactionHash', function(hash) {
-    //       console.log('The transaction hash is: ',hash)
-    //     })
-    //     .once('receipt', function(receipt) {
-    //       console.log("The receipt is: ", receipt)
-    //     })
-    //     .on('confirmation', function(confNumber, receipt) {
-    //
-    //     })
-    //     .on('error', function(error) {
-    //       res.json({"Error in sending the transaction": error})
-    //     })
-    //   });
-    // })
-  //});
-
   app.post('/activateCitizen', async function(req,res) {
     let body = req.body
     let account = body.account
+    let phoneNumber = body.phoneNumber
     let secret = Math.floor(Math.random() * 100001);
     let path = "./data/"+account
 
@@ -134,6 +102,9 @@
         } else {
           console.log(secret)
           res.json({"secret":secret})
+
+          //SEND SECRET TO phoneNumber
+          
         }
       })
     } else {
@@ -166,7 +137,7 @@
             to : scAddress,
             from: fromAddress,
             data : encoded,
-            gasLimit: 60000,
+            gasLimit: 100000,
             gasPrice: web3js.utils.toHex(12),
             value: 0,
             chainId: web3js.utils.toHex('3')
