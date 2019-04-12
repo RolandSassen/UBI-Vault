@@ -63,7 +63,11 @@
 
         })
         .on('error', function(error) {
+<<<<<<< HEAD
           res.json({"Error in sending the transaction": error})
+=======
+          res.send("Error in sending the transaction", error)
+>>>>>>> f7d6efd6868ecff16a3f6f3d679d740094d1d2c1
         })
       });
     })
@@ -78,6 +82,7 @@
     // return values
     let retError = null
     let retSecret = null
+<<<<<<< HEAD
 
     if(!fs.existsSync(path)) {
       fs.writeFile(path, secret, function(err) {
@@ -146,4 +151,69 @@
 });
 
 
+=======
+
+    if(!fs.existsSync(path)) {
+      fs.writeFile(path, secret, function(err) {
+        if(err) {
+          retError = "Could not activate your account"
+        } else {
+          retSecret = secret
+        }
+      })
+    } else {
+      retError = "Account already activated"
+    }
+
+    res.json({"secret": retSecret, "error": retError})
+  });
+
+  app.post('/registerCitizen', async function(req,res) {
+    let body = req.body
+
+    let account = body.account
+    let secret = body.secret
+
+    let path = "./data/"+account
+
+    let retError = null
+    let retHash = null
+
+    let ret;
+    fs.readFile('./data/'+account, function (err, data) {
+      if (err) {
+        retError = "account not activated"
+      } else {
+        web3js.eth.getTransactionCount(fromAddress).then(txCount => {
+        encoded = contractInstance.methods.registerCitizenOwner(body.account).encodeABI()
+
+        var tx = {
+          nonce: web3js.utils.toHex(txCount),
+          to : scAddress,
+          from: fromAddress,
+          data : encoded,
+          gasLimit: 60000,
+          gasPrice: web3js.utils.toHex(12),
+          value: 0,
+          chainId: UBIVaultNetwork.toString(10)
+        }
+
+        web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
+        web3js.eth.sendSignedTransaction(signed.rawTransaction)
+        .once('transactionHash', function(hash) {
+          retHash = hash
+        })
+        .on('error', function(error) {
+          retError = error
+        })
+        });
+      })
+      res.json({"data": retHash, "error": retError})
+    }
+        //content = data;
+  });
+});
+
+
+>>>>>>> f7d6efd6868ecff16a3f6f3d679d740094d1d2c1
   app.listen(3000, () => console.log('Example app listening on port 3000!'))
