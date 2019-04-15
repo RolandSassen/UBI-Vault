@@ -1,6 +1,7 @@
 pragma solidity ^0.5.7;
-import "./SafeMath.sol";
-import "./Ownable.sol";
+import "./../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./PausableDestroyable.sol";
+import "./../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 ///@title UBIVault, version 0.2
 ///@author AXVECO B.V., commisioned by THINSIA
 /**@notice
@@ -10,7 +11,7 @@ import "./Ownable.sol";
  *  AC is the amountOfCitizens
  *  AB is Amount of AmountOfBasicIncome
 */
-contract UBIVault is Ownable {
+contract UBIVault is Ownable, PausableDestroyable {
 
     using SafeMath for uint256;
 
@@ -137,7 +138,7 @@ contract UBIVault is Ownable {
      * AE becomes available for the citizens in the next paymentsCycle
     */
     ///@dev availableEther is truncated (rounded down), the remainder becomes available for maintenanceFunds
-    function sponsorVault(bytes32 message) public payable {
+    function sponsorVault(bytes32 message) public payable whenNotPaused {
         availableEther = availableEther.add(msg.value.mul(95) / 100);
         emit LogVaultSponsored(msg.sender, message, msg.value);
     }
@@ -180,7 +181,7 @@ contract UBIVault is Ownable {
         emit LogCitizenRegistered(newCitizen);
     }
 
-    function () external payable {
+    function () external payable whenNotPaused {
         availableEther = availableEther.add(msg.value.mul(95) / 100);
         emit LogVaultSponsored(msg.sender, bytes32(0), msg.value);
     }
