@@ -23,6 +23,8 @@
     "express": "^4.16.4",
     "fs": "0.0.1-security",
     "node-cron": "^2.0.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
     "truffle": "^5.0.12",
     "truffle-contract": "^4.0.11",
     "truffle-hdwallet-provider": "^1.0.6",

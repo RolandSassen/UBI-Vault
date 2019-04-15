@@ -3,9 +3,11 @@
     const cron = require("node-cron");
     const express = require("express");
     const fs = require("fs");
+    const path = require('path');
     require('dotenv').config();
     const web3 = require('web3')
     const HDWalletProvider = require("truffle-hdwallet-provider");
+    const dataDir = "./data/";
 
     // environment variables
     // let infurakey = process.env.INFURAKEY
@@ -33,16 +35,98 @@
     // replace new web3js.eth.Contract(ubiVault_artifacts.abi,scAddress) below when we need a websocket (event watching)
     //web3js = new web3(new web3.providers.WebsocketProvider('wss://mainnet.infura.io/_ws'));
 
+
+
+    //delete all data files (COMMENT FOR PRODUCTION)
+    // fs.readdir(dataDir, (err, files) => {
+    //   if (err) throw err;
+    //
+    //   for (const file of files) {
+    //     fs.unlink(path.join(dataDir, file), err => {
+    //       if (err) throw err;
+    //     });
+    //   }
+    // });
+
+    const getCurrentGasPrices = () => {
+
+      web3js.eth.getGasPrice().
+         then((averageGasPrice) => {
+             console.log("Average gas price: " + averageGasPrice);
+             return averageGasPrice;
+         }).
+         catch(console.error);
+    };
+
+
+    const createUBI = (req,res) => {
+
+      web3js.eth.getTransactionCount(fromAddress).then(txCount => {
+        encoded = contractInstance.methods.createUBI(new web3js.utils.BN(60332188286475)).encodeABI()
+
+        var tx = {
+          nonce: web3js.utils.toHex(txCount),
+          to : scAddress,
+          from: fromAddress,
+          data : encoded,
+          gasLimit: 150000,
+          gasPrice: web3js.utils.toHex(getCurrentGasPrices()),
+          value: 0,
+          chainId: web3js.utils.toHex('3')
+        }
+
+        web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
+          console.log(fromAddress, tx, signed, privateKey)
+
+          web3js.eth.sendSignedTransaction(signed.rawTransaction)
+          .once('transactionHash', function(hash) {
+            console.log('hash: ', hash)
+            //res.json({"hash": hash})
+          })
+          .on('error', function(error) {
+            console.log('error: ', error)
+            //res.json({"error": "There has been an error with sending the transaction to the blockchain"})
+          })
+        });
+      })
+
+    };
+
+
+    const getDollarCentInWei = () => {
+      const rp = require('request-promise');
+      var options = {
+          uri: 'https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=USD',
+          headers: {
+              'User-Agent': 'Request-Promise'
+          },
+          json: true // Automatically parses the JSON string in the response
+      };
+      var dollarCentInWei = 0;
+      rp(options).then(body => {
+//          console.log(body);
+          var usdPrice = body[0].price_usd;
+//          console.log(usdPrice);
+          dollarCentInWei = web3js.utils.toWei('1', 'ether') / (usdPrice * 100);
+
+          //averageGasPrice = web3js.utils.toWei(averageGasPrice.toString(), 'gwei');
+//          console.log(dollarCentInWei);
+          return dollarCentInWei;
+      }).catch(err => {
+          console.log(err);
+      });
+
+    };
+
     // create an express app
     app = express();
     app.use(express.json());
 
-
-    app.get('/registerCitizenOwner',function(req,res) {
+    app.get('/registerCitizenOwner', function(req,res) {
 
       web3js.eth.getTransactionCount(fromAddress).then(txCount => {
 
-      encoded = contractInstance.methods.registerCitizenOwner('0xf46c0dd96f9c7330230Bed75a4CBdEB0F4Fe1CF0').encodeABI()
+      encoded = contractInstance.methods.registerCitizenOwner('0x47D4e47F44249eB540A93667eFD0f65e5a1E11f8').encodeABI()
 
       console.log('nonce');
       console.log(txCount);
@@ -53,7 +137,7 @@
         from: fromAddress,
         data : encoded,
         gasLimit: 100000,
-        gasPrice: 20000000000,
+        gasPrice: web3js.utils.toHex(getCurrentGasPrices()),
         value: 0,
         chainId: web3js.utils.toHex('3')
       }
@@ -88,7 +172,7 @@
     let account = body.account
     let phoneNumber = body.phoneNumber
     let secret = Math.floor(Math.random() * 100001);
-    let path = "./data/"+account
+    let path = dataDir+account
 
     // return values
     let retError = null
@@ -104,7 +188,7 @@
           res.json({"secret":secret})
 
           //SEND SECRET TO phoneNumber
-          
+
         }
       })
     } else {
@@ -138,7 +222,7 @@
             from: fromAddress,
             data : encoded,
             gasLimit: 100000,
-            gasPrice: web3js.utils.toHex(12),
+            gasPrice: web3js.utils.toHex(getCurrentGasPrices()),
             value: 0,
             chainId: web3js.utils.toHex('3')
           }
@@ -162,6 +246,82 @@
     }
   });
 });
+
+  app.get('/createUBI', async function(req,res) {
+
+      //var dollarCentInWei = getDollarCentInWei();
+      //console.log("dollarCentInWei: ", dollarCentInWei);
+      createUBI(req,res);
+
+
+  });
+
+  app.get('/claimUBI', async function(req,res) {
+
+    var citizens = [];
+
+    // Loop through all the files in the temp directory
+    fs.readdir(dataDir, function (err, files) {
+      if (err) {
+        console.error("Could not list the directory.", err);
+        process.exit(1);
+      }
+
+      files.forEach(function (file, index) {
+        // Make one pass and make the file complete
+//        console.log("file: ", file);
+          citizens.push(file.toString()); // add at the end
+
+      });
+
+    });
+
+    //GAAT MIS DOOR ASYNC LOOP
+    console.log("citizens:", citizens);
+
+    web3js.eth.getTransactionCount(fromAddress).then(txCount => {
+      encoded = contractInstance.methods.claimUBIOwner(citizens).encodeABI()
+
+      var tx = {
+        nonce: web3js.utils.toHex(txCount),
+        to : scAddress,
+        from: fromAddress,
+        data : encoded,
+        gasLimit: 150000,
+        gasPrice: web3js.utils.toHex(getCurrentGasPrices()),
+        value: 0,
+        chainId: web3js.utils.toHex('3')
+      }
+
+      web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
+        console.log(fromAddress, tx, signed, privateKey)
+
+        web3js.eth.sendSignedTransaction(signed.rawTransaction)
+        .once('transactionHash', function(hash) {
+          console.log('hash: ', hash)
+          //res.json({"hash": hash})
+        })
+        .on('error', function(error) {
+          console.log('error: ', error)
+          //res.json({"error": "There has been an error with sending the transaction to the blockchain"})
+        })
+      });
+    })
+
+
+
+
+  });
+
+
+  // schedule tasks to be run on the server
+   cron.schedule("*/3 * * * *", function(req,res) {
+     console.log("---------------------");
+     console.log("Running Cron Job createUBI");
+     createUBI(req,res);
+
+
+   });
 
 
   app.listen(3000, () => console.log('Example app listening on port 3000!'))
