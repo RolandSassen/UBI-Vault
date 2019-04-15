@@ -62,6 +62,7 @@
     const createUBI = (req,res) => {
 
       web3js.eth.getTransactionCount(fromAddress).then(txCount => {
+        //todo: use getDollarCentInWei 
         encoded = contractInstance.methods.createUBI(new web3js.utils.BN(60332188286475)).encodeABI()
 
         var tx = {
@@ -260,7 +261,7 @@
 
     var citizens = [];
 
-    //loop through all files 
+    //loop through all files
     fs.readdirSync(dataDir).forEach(function(file) {
       citizens.push(file.toString()); // add at the end
 
