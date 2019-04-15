@@ -132,7 +132,7 @@ contract UBIVault is Ownable, PausableDestroyable {
     */
     ///@dev availableEther is truncated (rounded down), the remainder becomes available for maintenancePool
     function sponsorVault(bytes32 message) public payable whenNotPaused {
-        moneyReceived(message)
+        moneyReceived(message);
     }
 
     ///@notice Allows citizens to claim their UBI which was made available since the last time they claimed it (or have registered, whichever is bigger)
@@ -152,13 +152,13 @@ contract UBIVault is Ownable, PausableDestroyable {
                 income = income.add(paymentsCycle[paymentsCycle.length - incomeClaims + index]);
             }
         } else {
-            return false
+            return false;
         }
         rightFromPaymentCycle[citizen] = paymentsCycle.length;
         promisedEther = promisedEther.sub(income);
         citizen.transfer(income);
         emit LogUBIClaimed(msg.sender, income, citizen);
-        return true
+        return true;
 
     }
 

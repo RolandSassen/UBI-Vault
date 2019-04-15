@@ -9,5 +9,5 @@ let initialMinimumPeriod = 120 //  2 minutes
 let initialWeiToDollarCent = new BN(60332188286475) // ether to dollar exchange rate in cents to wei
 console.log(initialWeiToDollarCent)
 module.exports = function(deployer, network, accounts) {
-  deployer.deploy(Ubivault, initialAB, initialMinimumPeriod, initialWeiToDollarCent)
+  deployer.deploy(Ubivault, initialAB, initialMinimumPeriod, initialWeiToDollarCent, accounts[0])
 }
