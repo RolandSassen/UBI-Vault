@@ -62,11 +62,9 @@ module.exports = {
   },
 
   registerCitizenOwner: async function(citizen) {
-    console.log('im here')
     try {
-      console.log('1')
       let dollarCentInWei = await helpers.getDollarCentInWei();
-      console.log(dollarCentInWei)
+
       let encoded = contractInstance.methods.registerCitizenOwner(citizen).encodeABI()
       //console.log('4', await contractInstance.methods.createUBI(dollarCentInWei).estimateGas({from: fromAddress}))
       var tx = {
@@ -80,14 +78,17 @@ module.exports = {
         chainId: web3js.utils.toHex(deployedToNetwork)
       }
 
-
-      console.log('HERE', tx, privateKey)
-      let signedTransaction = await web3js.eth.signTransaction(tx, privateKey)
-      console.log('signed')
+      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
       let signedRawTransaction = signedTransaction.rawTransaction
-      console.log(signedTransaction)
-      // we return a web3 promiEvent, Expected to be able to do .once('receipt') on this.
-      return web3js.eth.sendSignedTransaction(signedRawTransaction)
+      web3js.eth.sendSignedTransaction(signedRawTransaction)
+      .once('transactionHash', function(hash) {
+        console.log(hash, 'hash')
+      })
+      .once('receipt', function(receipt) {
+        console.log('got receipt', receipt)
+        return receipt
+      })
+
     }
     catch(err) {
       throw("Error in registerCitizenOwner: ", err)
