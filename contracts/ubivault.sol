@@ -7,7 +7,7 @@ import "./../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol"
 /**@notice
  * The UBIVault smart contract allows parties to fund the fault with money (Ether) and citizens to register and claim an UBI.
  * The vault makes a payout maximally once per weeks when AE/AC >= AB, where
- *  AE is 95% of the total deposited money (5% is for the vault's maintenanceFunds)
+ *  AE is 95% of the total deposited money (5% is for the maintenancePool)
  *  AC is the amountOfCitizens
  *  AB is Amount of AmountOfBasicIncome
 */
@@ -24,11 +24,11 @@ contract UBIVault is Ownable, PausableDestroyable {
     uint256 public weiToDollarCent;
     uint256 public availableEther;
     uint256 public lastPayout;
+    address payable public maintenancePool;
     uint256 public minimumPeriod;
     uint256 public promisedEther;
     uint256[] public paymentsCycle;
 
-    event LogMaintenanceFundsClaimed(address indexed caller, uint256 amount);
     event LogUseablePasswordCreated(bytes32 passwordHash);
     event LogUBICreated(uint256 adjustedWeiToDollarCent, uint256 totalamountOfBasicIncomeInWei, uint256 amountOfCitizens, uint8 amountOfBasicIncomeCanBeIncreased);
     event LogCitizenRegistered(address newCitizen);
@@ -38,33 +38,30 @@ contract UBIVault is Ownable, PausableDestroyable {
     event LogUBIClaimed(address indexed caller, uint256 income, address indexed citizen);
 
     ///@dev we set the first value in the paymentsCycle array, because 0 is the default value for the rightFromPaymentCycle for all addresses.
-    constructor(uint256 initialAB, uint256 initialMinimumPeriod, uint256 initialWeiToDollarCent) public {
+    constructor(
+        uint256 initialAB,
+        uint256 initialMinimumPeriod,
+        uint256 initialWeiToDollarCent,
+        address payable maintenancePool
+    ) public {
         minimumPeriod = initialMinimumPeriod;
         weiToDollarCent = initialWeiToDollarCent;
         amountOfBasicIncome = initialAB;
         paymentsCycle.push(0);
     }
 
-    ///@notice Allows citizens to claim their UBI which was made available since the last time they claimed it (or have registered, whichever is bigger)
-    /**
-     * @dev
-     * increases the rightFromPaymentCycle for the caller (also increased in the function registerCitizen)
-     * decreases the promisedEther (which is increased in the function createUBI)
-    */
-    function claimMaintenanceFunds(uint256 amount) public onlyOwner {
-        require(amount <= getMaintenanceFunds());
-        msg.sender.transfer(amount);
-        emit LogMaintenanceFundsClaimed(msg.sender, amount);
-    }
-
-    function claimUBIOwner(address payable[] memory citizens) public onlyOwner {
+    function claimUBIOwner(address payable[] memory citizens) public onlyOwner returns(bool) {
+        bool allRequestedCitizensGotPayout = true;
         for(uint256 i = 0; i < citizens.length; i++) {
-            claimUBI(citizens[i]);
+            if(!claimUBI(citizens[i])) {
+              allRequestedCitizensGotPayout = false;
+            }
         }
+        return allRequestedCitizensGotPayout;
     }
 
     function claimUBIPublic() public {
-        claimUBI(msg.sender);
+        require(claimUBI(msg.sender));
     }
 
     //TODO: add description
@@ -116,10 +113,6 @@ contract UBIVault is Ownable, PausableDestroyable {
         emit LogUBICreated(adjustedWeiToDollarCent, totalamountOfBasicIncomeInWei, amountOfCitizens, amountOfBasicIncomeCanBeIncreased);
     }
 
-    function getMaintenanceFunds() public view returns(uint256) {
-        return address(this).balance.sub(promisedEther).sub(availableEther);
-    }
-
     function registerCitizenOwner(address newCitizen) public onlyOwner {
         require(newCitizen != address(0));
         registerCitizen(newCitizen);
@@ -134,13 +127,12 @@ contract UBIVault is Ownable, PausableDestroyable {
     }
 
     /**@notice
-     * Increases the availableEther with 95% of the transfered value, the remainder is available for maintenanceFunds.
+     * Increases the availableEther with 95% of the transfered value, the remainder is available for maintenancePool.
      * AE becomes available for the citizens in the next paymentsCycle
     */
-    ///@dev availableEther is truncated (rounded down), the remainder becomes available for maintenanceFunds
+    ///@dev availableEther is truncated (rounded down), the remainder becomes available for maintenancePool
     function sponsorVault(bytes32 message) public payable whenNotPaused {
-        availableEther = availableEther.add(msg.value.mul(95) / 100);
-        emit LogVaultSponsored(msg.sender, message, msg.value);
+        moneyReceived(message)
     }
 
     ///@notice Allows citizens to claim their UBI which was made available since the last time they claimed it (or have registered, whichever is bigger)
@@ -149,7 +141,7 @@ contract UBIVault is Ownable, PausableDestroyable {
      * increases the rightFromPaymentCycle for the caller (also increased in the function registerCitizen)
      * decreases the promisedEther (which is increased in the function createUBI)
     */
-    function claimUBI(address payable citizen) internal {
+    function claimUBI(address payable citizen) internal returns(bool) {
         require(rightFromPaymentCycle[citizen] != 0);
         uint256 incomeClaims = paymentsCycle.length - rightFromPaymentCycle[citizen];
         uint256 income;
@@ -160,13 +152,21 @@ contract UBIVault is Ownable, PausableDestroyable {
                 income = income.add(paymentsCycle[paymentsCycle.length - incomeClaims + index]);
             }
         } else {
-            revert();
+            return false
         }
         rightFromPaymentCycle[citizen] = paymentsCycle.length;
         promisedEther = promisedEther.sub(income);
         citizen.transfer(income);
         emit LogUBIClaimed(msg.sender, income, citizen);
+        return true
 
+    }
+
+    function moneyReceived(bytes32 message) internal {
+      uint256 increaseInAvailableEther = msg.value.mul(95) / 100;
+      availableEther = availableEther.add(increaseInAvailableEther);
+      maintenancePool.transfer(msg.value - increaseInAvailableEther);
+      emit LogVaultSponsored(msg.sender, bytes32(0), msg.value);
     }
 
      /**@notice
@@ -182,8 +182,7 @@ contract UBIVault is Ownable, PausableDestroyable {
     }
 
     function () external payable whenNotPaused {
-        availableEther = availableEther.add(msg.value.mul(95) / 100);
-        emit LogVaultSponsored(msg.sender, bytes32(0), msg.value);
+        moneyReceived(bytes32(0));
     }
 }
 
