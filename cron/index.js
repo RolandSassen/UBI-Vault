@@ -260,24 +260,13 @@
 
     var citizens = [];
 
-    // Loop through all the files in the temp directory
-    fs.readdir(dataDir, function (err, files) {
-      if (err) {
-        console.error("Could not list the directory.", err);
-        process.exit(1);
-      }
-
-      files.forEach(function (file, index) {
-        // Make one pass and make the file complete
-//        console.log("file: ", file);
-          citizens.push(file.toString()); // add at the end
-
-      });
+    //loop through all files 
+    fs.readdirSync(dataDir).forEach(function(file) {
+      citizens.push(file.toString()); // add at the end
 
     });
 
-    //GAAT MIS DOOR ASYNC LOOP
-    console.log("citizens:", citizens);
+    console.log("citizens:", citizens[0]);
 
     web3js.eth.getTransactionCount(fromAddress).then(txCount => {
       encoded = contractInstance.methods.claimUBIOwner(citizens).encodeABI()
