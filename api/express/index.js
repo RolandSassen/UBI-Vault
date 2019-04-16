@@ -46,8 +46,11 @@
       } else {
         if(secret == data) {
           //console.log(ubiVault)
-          let _ubiVault = await ubiVault.registerCitizenOwner(account)
-          console.log('ubi', _ubiVault)
+          let promiEvent = await ubiVault.registerCitizenOwner(account)
+          console.log(promiEvent)
+          // promiEvent.once('transactionHash', function(hash) {
+          //   console.log('HERE', hash)
+          // })
           res.json({"res": 'test'})
           // .once('receipt', function(receipt) {
           //   res.json({"receipt": receipt})
