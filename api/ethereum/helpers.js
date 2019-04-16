@@ -18,17 +18,15 @@ module.exports = {
         },
         json: true // Automatically parses the JSON string in the response
     };
-    console.log(options)
     //var dollarCentInWei = 0;
     // body[0].price_usd is the price of 1 ether in USD
     try {
-      console.log('returning 10...')
-      // let body = await rp(options)
-      // let usdCentPrice = body[0].price_usd * 100
-      return 10
+      let body = await rp(options)
+      let usdCentPrice = body[0].price_usd * 100
+      return Math.floor(web3js.utils.toWei('1', 'ether') / usdCentPrice)
     }
     catch(err) {
-      throw('err', err)
+      throw(err)
     }
   }
 }

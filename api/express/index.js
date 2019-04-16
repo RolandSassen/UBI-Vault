@@ -35,9 +35,7 @@
   });
 
   app.post('/registerCitizen', async function(req,res) {
-    console.log('test')
     let body = req.body
-
     let account = body.account
     let secret = body.secret
 
@@ -46,27 +44,8 @@
         res.json({"error": "Account not registered"})
       } else {
         if(secret == data) {
-          //console.log(ubiVault)
-
-          try {
-            let promiEvent = ubiVault.registerCitizenOwner(account)
-            promiEvent
-            .once('transactionHash', function(hash){ console.log('hash: ', hash)})
-            .once('confirmation', function(confirmationNumber, receipt){
-              if(confirmationNumber == 1) {
-                if(receipt.status == false) {
-                  throw("Transaction reverted by EVM")
-                } else {
-                  res.json({"receipt": receipt})
-                }
-              }
-            })
-            .on('error', function(error)  {
-              res.json({"error": "error in sending transaction"})
-            })
-          } catch(err) {
-            res.json({"err": err})
-          }
+          // we pass res to the ubiVault, and the ubiVault will populate the response
+          ubiVault.registerCitizenOwner(account, res)
         }
         else {
           res.json({"error": "secret is not correct"})

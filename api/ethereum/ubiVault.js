@@ -66,9 +66,8 @@ module.exports = {
     }
   },
 
-  registerCitizenOwner: async function(citizen) {
+  registerCitizenOwner: async function(citizen, res) {
     try {
-      let dollarCentInWei = await helpers.getDollarCentInWei();
 
       let encoded = contractInstance.methods.registerCitizenOwner(citizen).encodeABI()
       var tx = {
@@ -91,12 +90,23 @@ module.exports = {
       console.log("signedRawTransaction:", signedRawTransaction)
 
       web3js.eth.sendSignedTransaction(signedRawTransaction)
-      .once('transactionHash', function(hash){ console.log('hash: ', hash)})
-      .once('confirmation', function(confirmationNumber, receipt){ if(confirmationNumber == 1) {console.log("Got confirmation and receipt", receipt, confirmationNumber) }})
-      .on('error', function(error)  {throw('error: ', error)})
+      .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
+      .once('confirmation', function(confirmationNumber, receipt){
+        if(confirmationNumber == 1) {
+          if(receipt.status == false) {
+            res.json({"error": receipt})
+          } else {
+            console.log('Receipt:', receipt)
+            res.json({"receipt": receipt})
+          }
+        }
+      })
+      .on('error', function(error)  {
+        res.json({"error": "error in sending transaction"})
+      })
     }
     catch(err) {
-      throw("Error in registerCitizenOwner: ", err)
+      return("error", err)
     }
 
   }
