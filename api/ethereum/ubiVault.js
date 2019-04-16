@@ -102,11 +102,11 @@ module.exports = {
         }
       })
       .on('error', function(error)  {
-        res.json({"error": "error in sending transaction"})
+        res.json({"error": {"error in sending transaction", err}})
       })
     }
     catch(err) {
-      return("error", err)
+      res.json({"error": {"error in sending transaction", err})
     }
 
   }
