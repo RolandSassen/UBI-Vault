@@ -1,4 +1,5 @@
 // index.js
+
     const ubiVault = require("./../ethereum/ubiVault.js");
     // packages
     const cron = require("node-cron");
@@ -46,18 +47,26 @@
       } else {
         if(secret == data) {
           //console.log(ubiVault)
-          let promiEvent = await ubiVault.registerCitizenOwner(account)
-          console.log(promiEvent)
-          // promiEvent.once('transactionHash', function(hash) {
-          //   console.log('HERE', hash)
-          // })
-          res.json({"res": 'test'})
-          // .once('receipt', function(receipt) {
-          //   res.json({"receipt": receipt})
-          // })
-          // .on('error', function(error) {
-          //   res.json({"error": "There has been an error with sending the transaction to the blockchain"})
-          // })
+
+          try {
+            let promiEvent = ubiVault.registerCitizenOwner(account)
+            promiEvent
+            .once('transactionHash', function(hash){ console.log('hash: ', hash)})
+            .once('confirmation', function(confirmationNumber, receipt){
+              if(confirmationNumber == 1) {
+                if(receipt.status == false) {
+                  throw("Transaction reverted by EVM")
+                } else {
+                  res.json({"receipt": receipt})
+                }
+              }
+            })
+            .on('error', function(error)  {
+              res.json({"error": "error in sending transaction"})
+            })
+          } catch(err) {
+            res.json({"err": err})
+          }
         }
         else {
           res.json({"error": "secret is not correct"})
@@ -84,8 +93,6 @@
       citizens.push(file.toString()); // add at the end
 
     });
-
-    console.log("citizens:", citizens[0]);
 
     web3js.eth.getTransactionCount(fromAddress).then(txCount => {
       encoded = contractInstance.methods.claimUBIOwner(citizens).encodeABI()
@@ -121,15 +128,15 @@
 
   });
 
-
-  // schedule tasks to be run on the server
-   cron.schedule("*/3 * * * *", function(req,res) {
-     console.log("---------------------");
-     console.log("Running Cron Job createUBI");
-     createUBI(req,res);
-
-
-   });
+  //
+  // // schedule tasks to be run on the server
+  //  cron.schedule("*/3 * * * *", function(req,res) {
+  //    console.log("---------------------");
+  //    console.log("Running Cron Job createUBI");
+  //    createUBI(req,res);
+  //
+  //
+  //  });
 
 
   app.listen(3000, () => console.log('Example app listening on port 3000!'))

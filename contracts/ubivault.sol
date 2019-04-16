@@ -42,11 +42,12 @@ contract UBIVault is Ownable, PausableDestroyable {
         uint256 initialAB,
         uint256 initialMinimumPeriod,
         uint256 initialWeiToDollarCent,
-        address payable maintenancePool
+        address payable _maintenancePool
     ) public {
         minimumPeriod = initialMinimumPeriod;
         weiToDollarCent = initialWeiToDollarCent;
         amountOfBasicIncome = initialAB;
+        maintenancePool = _maintenancePool;
         paymentsCycle.push(0);
     }
 
