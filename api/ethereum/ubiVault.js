@@ -3,12 +3,13 @@ require('dotenv').config();
 const web3 = require('web3')
 const HDWalletProvider = require("truffle-hdwallet-provider");
 
+//new Web3.providers.WebsocketProvider("wss://mainnet.infura.io/ws/v3/YOUR-PROJECT-ID")
 // environment variables
 let infurakey = process.env.INFURAKEY
 let mnemonic = process.env.MNEMONIC
 
 //Infura HttpProvider Endpoint
-var web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/" + infurakey));
+var web3js = new web3(new web3.providers.WebsocketProvider("wss://ropsten.infura.io/ws/v3/"+infurakey));
 
 // wallet provider
 var provider = new HDWalletProvider(mnemonic, "http://localhost:8545");
@@ -22,14 +23,18 @@ let deployedToNetwork = Object.keys(ubiVault_artifacts.networks)[0]
 let fromAddress = provider.addresses[0];
 var privateKey = '0x' + provider.wallets[fromAddress]._privKey.toString('hex')
 var contractInstance = new web3js.eth.Contract(ubiVault_artifacts.abi,scAddress);
-var internalTXCount;
+var internalTXCount = 0;
 
 // we keep track of both an internalTXCount => incremented when this module performs a TX and an externalTXCount (incremented by web3) because the externalTXCount might not always be updated timely and create errors
 async function getTXCount() {
   let externalTXCount = await web3js.eth.getTransactionCount(fromAddress)
   let currentInternalTXCount = internalTXCount;
-  internalTXCount++;
-  return internalTXCount >= externalTXCount ? currentInternalTXCount : externalTXCount
+  if(internalTXCount == 0) {
+    internalTXCount = externalTXCount
+  } else {
+    internalTXCount++
+  }
+  return currentInternalTXCount >= externalTXCount ? currentInternalTXCount : externalTXCount
 }
 
 module.exports = {
@@ -61,37 +66,47 @@ module.exports = {
     }
   },
 
-  registerCitizenOwner: async function(citizen) {
+  registerCitizenOwner: async function(citizen, res) {
     try {
-      let dollarCentInWei = await helpers.getDollarCentInWei();
 
       let encoded = contractInstance.methods.registerCitizenOwner(citizen).encodeABI()
-      //console.log('4', await contractInstance.methods.createUBI(dollarCentInWei).estimateGas({from: fromAddress}))
       var tx = {
-        nonce: web3js.utils.toHex(getTXCount()),
+        nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
         to : scAddress,
         from: fromAddress,
         data : encoded,
-        gasLimit: 100000,
+        gasLimit: web3js.utils.toHex(60000),
         gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
         value: 0,
         chainId: web3js.utils.toHex(deployedToNetwork)
       }
 
-      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
-      let signedRawTransaction = signedTransaction.rawTransaction
-      web3js.eth.sendSignedTransaction(signedRawTransaction)
-      .once('transactionHash', function(hash) {
-        console.log(hash, 'hash')
-      })
-      .once('receipt', function(receipt) {
-        console.log('got receipt', receipt)
-        return receipt
-      })
+      console.log(tx, privateKey)
 
+      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
+      console.log(signedTransaction)
+      let signedRawTransaction = signedTransaction.rawTransaction
+
+      console.log("signedRawTransaction:", signedRawTransaction)
+
+      web3js.eth.sendSignedTransaction(signedRawTransaction)
+      .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
+      .once('confirmation', function(confirmationNumber, receipt){
+        if(confirmationNumber == 1) {
+          if(receipt.status == false) {
+            res.json({"error": receipt})
+          } else {
+            console.log('Receipt:', receipt)
+            res.json({"receipt": receipt})
+          }
+        }
+      })
+      .on('error', function(error)  {
+        res.json({"error": {"error in sending transaction", err}})
+      })
     }
     catch(err) {
-      throw("Error in registerCitizenOwner: ", err)
+      res.json({"error": {"error in sending transaction", err})
     }
 
   }
