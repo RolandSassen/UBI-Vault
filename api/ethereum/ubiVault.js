@@ -72,7 +72,7 @@ module.exports = {
         }
       })
       .on('error', function(error)  {
-        res.json({"error": "error in sending transaction" + err})
+        res.json({"error": "error in sending transaction" + error})
       })
     }
     catch (err) {
@@ -112,7 +112,7 @@ module.exports = {
         }
       })
       .on('error', function(error)  {
-        res.json({"error": "error in sending transaction" + err})
+        res.json({"error": "error in sending transaction" + error})
       })
 
     }
@@ -154,7 +154,7 @@ module.exports = {
         }
       })
       .on('error', function(error)  {
-        res.json({"error": "error in sending transaction" + err})
+        res.json({"error": "error in sending transaction" + error})
       })
     }
     catch(err) {
