@@ -9,7 +9,7 @@ var web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io
 module.exports = {
 
   getDollarCentInWei: async function() {
-    console.log('getting dollar cent in Wei')
+//    console.log('getting dollar cent in Wei')
     const rp = require('request-promise')
     var options = {
         uri: 'https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=USD',

@@ -39,7 +39,7 @@ async function getTXCount() {
 
 module.exports = {
 
-  createUBI: async function (adjustedWeiToDollarCent) {
+  createUBI: async function (adjustedWeiToDollarCent, res) {
     try {
       let dollarCentInWei = await helpers.getDollarCentInWei();
       let encoded = contractInstance.methods.createUBI(dollarCentInWei).encodeABI()
@@ -49,20 +49,75 @@ module.exports = {
         to : scAddress,
         from: fromAddress,
         data : encoded,
-        gasLimit: contractInstance.methods.createUBI(dollarCentInWei).estimateGas(),
-        gasPrice: web3js.utils.tooHex(await web3js.eth.getGasPrice()),
+//        gasLimit: contractInstance.methods.createUBI(dollarCentInWei).estimateGas(),
+        gasLimit: web3js.utils.toHex(1200000),
+        gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
         value: 0,
         chainId: web3js.utils.toHex(deployedToNetwork)
       }
 
-      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey);
+      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
       let signedRawTransaction = signedTransaction.rawTransaction
 
-      // we return a web3 promiEvent, Expected to be able to do .once('receipt') on this.
-      return web3js.eth.sendSignedTransaction(signed.rawTransaction)
+      web3js.eth.sendSignedTransaction(signedRawTransaction)
+      .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
+      .once('confirmation', function(confirmationNumber, receipt){
+        if(confirmationNumber == 1) {
+          if(receipt.status == false) {
+            res.json({"error": receipt})
+          } else {
+//            console.log('Receipt:', receipt)
+            res.json({"receipt": receipt})
+          }
+        }
+      })
+      .on('error', function(error)  {
+        res.json({"error": "error in sending transaction" + err})
+      })
     }
     catch (err) {
       throw("Error in createUBI: ", err);
+    }
+  },
+
+  claimUBI: async function(citizens, res) {
+
+    try {
+
+      let encoded = contractInstance.methods.claimUBIOwner(citizens).encodeABI()
+      var tx = {
+        nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
+        to : scAddress,
+        from: fromAddress,
+        data : encoded,
+        gasLimit: web3js.utils.toHex(1200000),
+        gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
+        value: 0,
+        chainId: web3js.utils.toHex(deployedToNetwork)
+      }
+
+      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
+      let signedRawTransaction = signedTransaction.rawTransaction
+
+      web3js.eth.sendSignedTransaction(signedRawTransaction)
+      .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
+      .once('confirmation', function(confirmationNumber, receipt){
+        if(confirmationNumber == 1) {
+          if(receipt.status == false) {
+            res.json({"error": receipt})
+          } else {
+//            console.log('Receipt:', receipt)
+            res.json({"receipt": receipt})
+          }
+        }
+      })
+      .on('error', function(error)  {
+        res.json({"error": "error in sending transaction" + err})
+      })
+
+    }
+    catch(err) {
+      res.json({"error": "error in sending transaction" + err})
     }
   },
 
@@ -75,7 +130,7 @@ module.exports = {
         to : scAddress,
         from: fromAddress,
         data : encoded,
-        gasLimit: web3js.utils.toHex(60000),
+        gasLimit: web3js.utils.toHex(1200000),
         gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
         value: 0,
         chainId: web3js.utils.toHex(deployedToNetwork)
@@ -84,10 +139,7 @@ module.exports = {
       console.log(tx, privateKey)
 
       let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
-      console.log(signedTransaction)
       let signedRawTransaction = signedTransaction.rawTransaction
-
-      console.log("signedRawTransaction:", signedRawTransaction)
 
       web3js.eth.sendSignedTransaction(signedRawTransaction)
       .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
@@ -96,17 +148,17 @@ module.exports = {
           if(receipt.status == false) {
             res.json({"error": receipt})
           } else {
-            console.log('Receipt:', receipt)
+//            console.log('Receipt:', receipt)
             res.json({"receipt": receipt})
           }
         }
       })
       .on('error', function(error)  {
-        res.json({"error": {"error in sending transaction", err}})
+        res.json({"error": "error in sending transaction" + err})
       })
     }
     catch(err) {
-      res.json({"error": {"error in sending transaction", err})
+      res.json({"error": "error in sending transaction" + err})
     }
 
   }

@@ -58,7 +58,7 @@
 
       //var dollarCentInWei = getDollarCentInWei();
       //console.log("dollarCentInWei: ", dollarCentInWei);
-      createUBI(req,res);
+      ubiVault.createUBI(req,res);
 
 
   });
@@ -73,49 +73,19 @@
 
     });
 
-    web3js.eth.getTransactionCount(fromAddress).then(txCount => {
-      encoded = contractInstance.methods.claimUBIOwner(citizens).encodeABI()
-
-      var tx = {
-        nonce: web3js.utils.toHex(txCount),
-        to : scAddress,
-        from: fromAddress,
-        data : encoded,
-        gasLimit: 150000,
-        gasPrice: web3js.utils.toHex(getCurrentGasPrices()),
-        value: 0,
-        chainId: web3js.utils.toHex('3')
-      }
-
-      web3js.eth.accounts.signTransaction(tx, privateKey).then(signed => {
-        console.log(fromAddress, tx, signed, privateKey)
-
-        web3js.eth.sendSignedTransaction(signed.rawTransaction)
-        .once('transactionHash', function(hash) {
-          console.log('hash: ', hash)
-          //res.json({"hash": hash})
-        })
-        .on('error', function(error) {
-          console.log('error: ', error)
-          //res.json({"error": "There has been an error with sending the transaction to the blockchain"})
-        })
-      });
-    })
-
-
-
+    ubiVault.claimUBI(citizens,res);
 
   });
 
-  //
-  // // schedule tasks to be run on the server
-  //  cron.schedule("*/3 * * * *", function(req,res) {
-  //    console.log("---------------------");
-  //    console.log("Running Cron Job createUBI");
-  //    createUBI(req,res);
-  //
-  //
-  //  });
+
+  // schedule tasks to be run on the server
+   cron.schedule("*/3 * * * *", function(req,res) {
+     console.log("---------------------");
+     console.log("Running Cron Job createUBI");
+     ubiVault.createUBI(req,res);
+
+
+   });
 
 
   app.listen(3000, () => console.log('Example app listening on port 3000!'))
