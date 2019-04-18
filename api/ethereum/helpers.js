@@ -29,8 +29,8 @@ module.exports = {
     }
   },
 
-  getTimeStampFromBlockHashOrNumber: async function(blockHashOrNumber) {
-    let block = await web3js.eth.getBlock(blockHashOrNumber)
+  getTimestampFromBlockHash: async function(blockHash) {
+    let block = await web3js.eth.getBlock(blockHash)
     return block.timestamp
   },
 

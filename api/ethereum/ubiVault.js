@@ -35,7 +35,7 @@ async function populateAllcitizens(_contractInstance) {
     switch(eventName) {
       case "LogCitizenRegistered":
         let citizenAccount = pastEvents[index].returnValues.newCitizen
-        let timeRegistered = await helpers.getTimeStampFromBlockHashOrNumber(myEvent.blockNumber)
+        let timeRegistered = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
         if(citizenAccount != undefined) {
           module.exports.allCitizens[citizenAccount] = {"timeRegistered": timeRegistered}
         }
@@ -43,7 +43,7 @@ async function populateAllcitizens(_contractInstance) {
       case "LogUseablePasswordCreated":
       break
       case "LogUBICreated":
-        let whenCreated = await helpers.getTimeStampFromBlockHashOrNumber(myEvent.blockHash)
+        let whenCreated = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
         let adjustedWeiToDollarCent = myEvent.returnValues.adjustedWeiToDollarCent
         let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei
         let amountOfCitizens = myEvent.returnValues.amountOfCitizens
@@ -84,7 +84,7 @@ function watchForNewEvents(_contractInstance) {
     switch (eventName) {
       case "LogCitizenRegistered":
       let citizenAccount = myEvent.returnValues.newCitizen
-      let whenRegistered = await helpers.getTimeStampFromBlockHashOrNumber(myEvent.blockHash)
+      let whenRegistered = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
       module.exports.allCitizens[citizenAccount] = {"whenRegistered": whenRegistered}
       console.log("New citizen Registered!")
       console.log(module.exports.allCitizens)
@@ -95,8 +95,7 @@ function watchForNewEvents(_contractInstance) {
 
       break
       case "LogUBICreated":
-        let whenCreated = await helpers.getTimeStampFromBlockHashOrNumber(myEvent.blockHash)
-        console.log(myEvent)
+        let whenCreated = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
         let adjustedWeiToDollarCent = myEvent.returnValues.adjustedWeiToDollarCent
         let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei
         let amountOfCitizens = myEvent.returnValues.amountOfCitizens
@@ -147,54 +146,67 @@ module.exports = {
   allUBIs: {},
 
   createUBI: async function () {
-    //TODO: don't always send the transaction, but call first to check wether the TX will revert
-    try {
-      let dollarCentInWei = await helpers.getDollarCentInWei();
-      //TODO: when the dollar rate has changed by more than 5%, take the 5% boundary
-      dollarCentInWei = 60332188286475 // for testing purposes
-      let encoded = contractInstance.methods.createUBI(dollarCentInWei).encodeABI()
+    let dollarCentInWei = await helpers.getDollarCentInWei();
+    let canCreateUBI = await contractInstance.methods.createUBI(dollarCentInWei).call({from: fromAddress})
+    if(canCreateUBI) {
+      console.log("Calling Smart Contract: createUBI")
+      try {
+        //TODO: when the dollar rate has changed by more than 5%, take the 5% boundary
+        //dollarCentInWei = 60332188286475 // for testing purposes
+        let encoded = contractInstance.methods.createUBI(dollarCentInWei).encodeABI()
 
-      var tx = {
-        nonce: web3js.utils.toHex(await getTXCount()),
-        to : scAddress,
-        from: fromAddress,
-        data : encoded,
-//        gasLimit: contractInstance.methods.createUBI(dollarCentInWei).estimateGas(),
-        gasLimit: web3js.utils.toHex(1200000),
-        gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
-        value: 0,
-        chainId: web3js.utils.toHex(deployedToNetwork)
-      }
-
-      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
-      let signedRawTransaction = signedTransaction.rawTransaction
-
-      web3js.eth.sendSignedTransaction(signedRawTransaction)
-      .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
-      .once('confirmation', function(confirmationNumber, receipt){
-        if(confirmationNumber == 1) {
-          if(receipt.status == false) {
-            console.error("Could not create UBI ", receipt)
-          } else {
-            console.log("Created UBI ", receipt)
-          }
+        var tx = {
+          nonce: web3js.utils.toHex(await getTXCount()),
+          to : scAddress,
+          from: fromAddress,
+          data : encoded,
+  //        gasLimit: contractInstance.methods.createUBI(dollarCentInWei).estimateGas(),
+          gasLimit: web3js.utils.toHex(1200000),
+          gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
+          value: 0,
+          chainId: web3js.utils.toHex(deployedToNetwork)
         }
-      })
-      .on('error', function(error)  {
-        console.error("Could not create UBI ", error)
 
-      })
-    }
-    catch (err) {
-      console.error("Could not create UBI ", err)
+        let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
+        let signedRawTransaction = signedTransaction.rawTransaction
+
+        web3js.eth.sendSignedTransaction(signedRawTransaction)
+        .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
+        .once('confirmation', function(confirmationNumber, receipt) {
+          if(confirmationNumber == 1) {
+            if(receipt.status == false) {
+              console.error("Could not create UBI ", receipt)
+            } else {
+              console.log("Succeeded CreateUBI in block", receipt.blockNumber)
+              module.exports.claimUBI()
+            }
+          }
+        })
+        .on('error', function(error)  {
+          console.error("Could not create UBI ", error)
+
+        })
+      }
+      catch (err) {
+        console.error("Could not create UBI ", err)
+      }
+    } else {
+      console.error("Could not create UBI")
     }
   },
 
-  claimUBI: async function(citizens, res) {
+  claimUBI: async function() {
+    console.log("Calling Smart Contract: claimUBIOwner")
+    let citizens =  Object.keys(module.exports.allCitizens)
+    let validatedCitizens = []
+    for(let index in citizens) {
+      if(await contractInstance.methods.claimUBIOwner([citizens[index]]).call({from: fromAddress})) {
+        validatedCitizens.push(citizens[index])
+      }
+    }
 
     try {
-
-      let encoded = contractInstance.methods.claimUBIOwner(citizens).encodeABI()
+      let encoded = contractInstance.methods.claimUBIOwner(validatedCitizens).encodeABI()
       var tx = {
         nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
         to : scAddress,
@@ -216,7 +228,7 @@ module.exports = {
           if(receipt.status == false) {
             res.json({"error": receipt})
           } else {
-//            console.log('Receipt:', receipt)
+            console.log("Succeeded claimUBIOwner in block", receipt.blockNumber)
             res.json({"receipt": receipt})
           }
         }
@@ -232,6 +244,7 @@ module.exports = {
   },
 
   registerCitizenOwner: async function(citizen, res) {
+    console.log("Calling Smart Contract: registerCitizenOwner")
     try {
 
       let encoded = contractInstance.methods.registerCitizenOwner(citizen).encodeABI()
@@ -246,8 +259,6 @@ module.exports = {
         chainId: web3js.utils.toHex(deployedToNetwork)
       }
 
-      console.log(tx, privateKey)
-
       let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
       let signedRawTransaction = signedTransaction.rawTransaction
 
@@ -258,7 +269,7 @@ module.exports = {
           if(receipt.status == false) {
             res.json({"error": receipt})
           } else {
-//            console.log('Receipt:', receipt)
+            console.log("Succeeded registerCitizenOwner in block", receipt.blockNumber)
             res.json({"receipt": receipt})
           }
         }
@@ -276,6 +287,10 @@ module.exports = {
     return contractInstance.methods.amountOfBasicIncome().call()
   },
 
+  getAvailableEther: async function() {
+    return contractInstance.methods.availableEther().call()
+  },
+
   getMinimumPeriod: async function() {
     return contractInstance.methods.minimumPeriod().call()
   },
@@ -286,9 +301,8 @@ module.exports = {
 
   getUBIAtCycle: function(paymentsCycle) {
     let UBIs = Object.values(module.exports.allUBIs)
-
     for(let index in UBIs) {
-      if(UBIs[index].paymentsCycle == paymentsCycle) {
+      if(UBIs[index].paymentsCycle.toString(10) == paymentsCycle.toString(10)) {
         return{"whenPaid": Object.keys(module.exports.allUBIs)[index], "UBI": UBIs[index]}
       }
     }
@@ -303,6 +317,18 @@ module.exports = {
       }
     }
     return {"whenPaid": highestKey, "UBI": module.exports.allUBIs[highestKey]}
+  },
+
+  getTotalDistributed: function() {
+    // totalDistributed in $
+    let totalDistributed = 0;
+    let UBIs = Object.values(module.exports.allUBIs)
+    for(let index in UBIs) {
+      let UBI = UBIs[index]
+      totalDistributed = UBI.totalamountOfBasicIncomeInWei * UBI.adjustedWeiToDollarCent / 100
+    }
+    return totalDistributed
+
   }
 
 
