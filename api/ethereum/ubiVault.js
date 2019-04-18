@@ -173,7 +173,7 @@ module.exports = {
         web3js.eth.sendSignedTransaction(signedRawTransaction)
         .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
         .once('confirmation', function(confirmationNumber, receipt) {
-          if(confirmationNumber == 1) {
+          if(confirmationNumber == 0) {
             if(receipt.status == false) {
               console.error("Could not create UBI ", receipt)
             } else {
@@ -224,7 +224,7 @@ module.exports = {
       web3js.eth.sendSignedTransaction(signedRawTransaction)
       .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
       .once('confirmation', function(confirmationNumber, receipt){
-        if(confirmationNumber == 1) {
+        if(confirmationNumber == 0) {
           if(receipt.status == false) {
             res.json({"error": receipt})
           } else {
@@ -265,7 +265,7 @@ module.exports = {
       web3js.eth.sendSignedTransaction(signedRawTransaction)
       .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
       .once('confirmation', function(confirmationNumber, receipt){
-        if(confirmationNumber == 1) {
+        if(confirmationNumber == 0) {
           if(receipt.status == false) {
             res.json({"error": receipt})
           } else {
@@ -325,7 +325,7 @@ module.exports = {
     let UBIs = Object.values(module.exports.allUBIs)
     for(let index in UBIs) {
       let UBI = UBIs[index]
-      totalDistributed = UBI.totalamountOfBasicIncomeInWei * UBI.adjustedWeiToDollarCent / 100
+      totalDistributed = UBI.totalamountOfBasicIncomeInWei / UBI.adjustedWeiToDollarCent 
     }
     return totalDistributed
 
