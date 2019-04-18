@@ -69,17 +69,29 @@
 
   app.get('/getCitizen', async function(req, res) {
     let account = req.body.account
-    let balance = await helpers.getBalance(account)
-    let basicIncome = await ubiVault.getAmountOfBasicIncome()
-    let whenRegistered = ubiVault.allCitizens[account].timeRegistered
-    let lastUBI = ubiVault.getLastUBI()
-    let rightFromPaymentCycle = await ubiVault.getRightFromPaymentsCycle(account)
-    let minimumPeriod = await ubiVault.getMinimumPeriod()
-    let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle - 1)
+    try {
+      let balance = await helpers.getBalance(account)
+      let basicIncome = await ubiVault.getAmountOfBasicIncome()
+      if(ubiVault.allCitizens[account] != null)
+      {
+        let whenRegistered = ubiVault.allCitizens[account].timeRegistered
+        let lastUBI = ubiVault.getLastUBI()
+        let rightFromPaymentCycle = await ubiVault.getRightFromPaymentsCycle(account)
+        let minimumPeriod = await ubiVault.getMinimumPeriod()
+        let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle - 1)
 
-    let lastClaimed = lastUBI.whenPaid > whenRegistered ? UBIAtPaymentsCyle.whenPaid : null
-    let expectedPayment = lastUBI.whenPaid + minimumPeriod
-    res.json({"balance": balance, "basicIncome": basicIncome, "lastClaimed": lastClaimed, "expectedPayment": expectedPayment})
+        let lastClaimed = lastUBI.whenPaid > whenRegistered ? UBIAtPaymentsCyle.whenPaid : null
+        let expectedPayment = lastUBI.whenPaid + minimumPeriod
+        res.json({"balance": balance, "basicIncome": basicIncome, "lastClaimed": lastClaimed, "expectedPayment": expectedPayment})
+      }
+      else {
+        res.json({"error": "Account not registered"})
+
+      }
+    }
+    catch(err) {
+      res.json({"error": "error in checking account" + err})
+    }
   })
 
   app.get('/getData', async function(req, res) {
