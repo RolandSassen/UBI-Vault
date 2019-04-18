@@ -1,5 +1,9 @@
 // index.js
 
+
+// /getCitizen
+// /getData
+
     const ubiVault = require("./../ethereum/ubiVault.js");
     // packages
     const cron = require("node-cron");
@@ -38,7 +42,7 @@
     let body = req.body
     let account = body.account
     let secret = body.secret
-
+    // check if there is a secret handed out at path dataDir+account
     fs.readFile(dataDir+account, async function (err, data) {
       if (err) {
         res.json({"error": "Account not registered"})
@@ -48,22 +52,22 @@
           ubiVault.registerCitizenOwner(account, res)
         }
         else {
+
           res.json({"error": "secret is not correct"})
         }
       }
     });
   });
 
-  app.get('/createUBI', async function(req,res) {
+  app.post('/createUBI', async function(req,res) {
 
       //var dollarCentInWei = getDollarCentInWei();
       //console.log("dollarCentInWei: ", dollarCentInWei);
-      ubiVault.createUBI(req,res);
-
+      ubiVault.createUBI(res);
 
   });
 
-  app.get('/claimUBI', async function(req,res) {
+  app.post('/claimUBI', async function(req,res) {
 
     var citizens = [];
 
@@ -72,20 +76,20 @@
       citizens.push(file.toString()); // add at the end
 
     });
-
     ubiVault.claimUBI(citizens,res);
-
   });
+
+  app.get('/getCitizen', async function() {
+
+  })
 
 
   // schedule tasks to be run on the server
-   cron.schedule("*/3 * * * *", function(req,res) {
-     console.log("---------------------");
-     console.log("Running Cron Job createUBI");
-     ubiVault.createUBI(req,res);
-
-
-   });
+  cron.schedule("*/3 * * * *", function() {
+    console.log("---------------------");
+    console.log("Running Cron Job createUBI");
+    ubiVault.createUBI();
+  });
 
 
   app.listen(3000, () => console.log('Example app listening on port 3000!'))

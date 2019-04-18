@@ -15,6 +15,11 @@ contract UBIVault is Ownable, PausableDestroyable {
 
     using SafeMath for uint256;
 
+    struct paymentsCycleInfo {
+        uint256 amount;
+        uint256 whenPaid;
+    }
+
     mapping(address => uint256) public rightFromPaymentCycle;
     mapping(bytes32 => bool) public useablePasswordHashes;
     mapping(bytes32 => bool) public usedPasswordHashes;
@@ -23,11 +28,10 @@ contract UBIVault is Ownable, PausableDestroyable {
     uint256 public amountOfCitizens;
     uint256 public weiToDollarCent;
     uint256 public availableEther;
-    uint256 public lastPayout;
     address payable public maintenancePool;
     uint256 public minimumPeriod;
     uint256 public promisedEther;
-    uint256[] public paymentsCycle;
+    paymentsCycleInfo[] public paymentsCycle;
 
     event LogUseablePasswordCreated(bytes32 passwordHash);
     event LogUBICreated(uint256 adjustedWeiToDollarCent, uint256 totalamountOfBasicIncomeInWei, uint256 amountOfCitizens, uint8 amountOfBasicIncomeCanBeIncreased);
@@ -48,7 +52,7 @@ contract UBIVault is Ownable, PausableDestroyable {
         weiToDollarCent = initialWeiToDollarCent;
         amountOfBasicIncome = initialAB;
         maintenancePool = _maintenancePool;
-        paymentsCycle.push(0);
+        paymentsCycle.push(paymentsCycleInfo(amount, whenPaid));
     }
 
     function claimUBIOwner(address payable[] memory citizens) public onlyOwner returns(bool) {
@@ -109,8 +113,7 @@ contract UBIVault is Ownable, PausableDestroyable {
             amountOfBasicIncomeCanBeIncreased == 0;
         }
         promisedEther = promisedEther.add(totalamountOfBasicIncomeInWei);
-        paymentsCycle.push(totalamountOfBasicIncomeInWei.div(amountOfCitizens));
-        lastPayout = now;
+        paymentsCycle.push(paymentsCycleInfo(amount, whenPaid));
         emit LogUBICreated(adjustedWeiToDollarCent, totalamountOfBasicIncomeInWei, amountOfCitizens, amountOfBasicIncomeCanBeIncreased);
     }
 
@@ -147,7 +150,7 @@ contract UBIVault is Ownable, PausableDestroyable {
         uint256 incomeClaims = paymentsCycle.length - rightFromPaymentCycle[citizen];
         uint256 income;
         if(incomeClaims == 1) {
-            income = paymentsCycle[paymentsCycle.length - 1];
+            income = paymentsCycle[paymentsCycle.length - 1].amount;
         } else if(incomeClaims > 1) {
             for(uint256 index; index < incomeClaims; index++) {
                 income = income.add(paymentsCycle[paymentsCycle.length - incomeClaims + index]);

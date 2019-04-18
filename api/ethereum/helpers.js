@@ -7,7 +7,6 @@ let infurakey = process.env.INFURAKEY
 var web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/" + infurakey));
 
 module.exports = {
-
   getDollarCentInWei: async function() {
 //    console.log('getting dollar cent in Wei')
     const rp = require('request-promise')
@@ -28,5 +27,14 @@ module.exports = {
     catch(err) {
       throw(err)
     }
+  },
+
+  getTimeStampFromBlockHashOrNumber: async function(blockHashOrNumber) {
+    let block = await web3js.eth.getBlock(blockHashOrNumber)
+    return block.timestamp
+  },
+
+  getPastEventsFrom: async function(contractInstance) {
+    return await contractInstance.getPastEvents("allEvents", {fromBlock:0})
   }
 }
