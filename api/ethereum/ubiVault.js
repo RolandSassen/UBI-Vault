@@ -226,20 +226,20 @@ module.exports = {
       .once('confirmation', function(confirmationNumber, receipt){
         if(confirmationNumber == 0) {
           if(receipt.status == false) {
-            res.json({"error": receipt})
+            console.error("Could not claim UBI ", receipt)
           } else {
             console.log("Succeeded claimUBIOwner in block", receipt.blockNumber)
-            res.json({"receipt": receipt})
+//            res.json({"receipt": receipt})
           }
         }
       })
       .on('error', function(error)  {
-        res.json({"error": "error in sending transaction" + error})
+        console.error("Could not claim UBI ", error)
       })
 
     }
     catch(err) {
-      res.json({"error": "error in sending transaction" + err})
+      console.error("Could not claim UBI ", err)
     }
   },
 
@@ -325,7 +325,7 @@ module.exports = {
     let UBIs = Object.values(module.exports.allUBIs)
     for(let index in UBIs) {
       let UBI = UBIs[index]
-      totalDistributed = UBI.totalamountOfBasicIncomeInWei / UBI.adjustedWeiToDollarCent 
+      totalDistributed = UBI.totalamountOfBasicIncomeInWei / UBI.adjustedWeiToDollarCent
     }
     return totalDistributed
 
