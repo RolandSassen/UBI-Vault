@@ -30,32 +30,89 @@ var internalTXCount = 0;
 async function populateAllcitizens(_contractInstance) {
   let pastEvents = await helpers.getPastEventsFrom(_contractInstance)
   for(index in pastEvents) {
-    if(pastEvents[index].event = "LogCitizenRegistered") {
-      let citizenAccount = pastEvents[index].returnValues.newCitizen
-      let timeRegistered = await helpers.getTimeStampFromBlockHashOrNumber(pastEvents[index].blockNumber)
-      if(citizenAccount != undefined) {
-        module.exports.allCitizens[citizenAccount] = {"timeRegistered": timeRegistered}
-      }
+    let myEvent = pastEvents[index]
+    let eventName = myEvent.event
+    switch(eventName) {
+      case "LogCitizenRegistered":
+        let citizenAccount = pastEvents[index].returnValues.newCitizen
+        let timeRegistered = await helpers.getTimeStampFromBlockHashOrNumber(myEvent.blockNumber)
+        if(citizenAccount != undefined) {
+          module.exports.allCitizens[citizenAccount] = {"timeRegistered": timeRegistered}
+        }
+      break
+      case "LogUseablePasswordCreated":
+      break
+      case "LogUBICreated":
+        let whenCreated = await helpers.getTimeStampFromBlockHashOrNumber(myEvent.blockHash)
+        let adjustedWeiToDollarCent = myEvent.returnValues.adjustedWeiToDollarCent
+        let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei
+        let amountOfCitizens = myEvent.returnValues.amountOfCitizens
+        let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased
+        let paymentsCycle = myEvent.returnValues.paymentsCycle
+        module.exports.allUBIs[whenCreated] = {
+          "paymentsCycle": paymentsCycle,
+          "adjustedWeiToDollarCent": adjustedWeiToDollarCent,
+          "totalamountOfBasicIncomeInWei": totalamountOfBasicIncomeInWei,
+          "amountOfCitizens": amountOfCitizens,
+          "amountOfBasicIncomeCanBeIncreased": amountOfBasicIncomeCanBeIncreased
+        }
+      break
+      case "LogPasswordUsed":
+      break;
+      case "LogVaultSponsored":
+      break;
+      case "SetSettleAllowance":
+      break;
+      case "SetSettleAllowance":
     }
   }
+  console.log("Read all past Events:")
+  console.log("Citizens: ")
+  console.log(module.exports.allCitizens)
+  console.log("____________________")
+  console.log("UBIs: ")
+  console.log(module.exports.allUBIs)
+  console.log("____________________")
 }
 
 function watchForNewEvents(_contractInstance) {
   //console.log(_contractInstance.events.all)
   let allEvents = _contractInstance.events.allEvents({fromBlock: 'latest'})
   allEvents.on('error', console.error)
-  allEvents.on('data', async function(event) {
-    let eventName = event.event
+  allEvents.on('data', async function(myEvent) {
+    let eventName = myEvent.event
     switch (eventName) {
       case "LogCitizenRegistered":
-      let citizenAccount = event.args.newCitizen
-      let whenRegistered = await helpers.getTimeStampFromBlockHash(event.blockHash)
+      let citizenAccount = myEvent.returnValues.newCitizen
+      let whenRegistered = await helpers.getTimeStampFromBlockHashOrNumber(myEvent.blockHash)
       module.exports.allCitizens[citizenAccount] = {"whenRegistered": whenRegistered}
-      console.log("New citizen Registered: ", citizenAccount, whenRegistered)
+      console.log("New citizen Registered!")
+      console.log(module.exports.allCitizens)
+      console.log("____________________")
+
       break;
       case "LogUseablePasswordCreated":
+
       break
       case "LogUBICreated":
+        let whenCreated = await helpers.getTimeStampFromBlockHashOrNumber(myEvent.blockHash)
+        console.log(myEvent)
+        let adjustedWeiToDollarCent = myEvent.returnValues.adjustedWeiToDollarCent
+        let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei
+        let amountOfCitizens = myEvent.returnValues.amountOfCitizens
+        let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased
+        let paymentsCycle = myEvent.returnValues.paymentsCycle
+        module.exports.allUBIs[whenCreated] = {
+          "paymentsCycle": paymentsCycle,
+          "adjustedWeiToDollarCent": adjustedWeiToDollarCent,
+          "totalamountOfBasicIncomeInWei": totalamountOfBasicIncomeInWei,
+          "amountOfCitizens": amountOfCitizens,
+          "amountOfBasicIncomeCanBeIncreased": amountOfBasicIncomeCanBeIncreased
+        }
+        console.log("UBI Created!")
+        console.log("UBIs: ")
+        console.log(module.exports.allUBIs)
+        console.log("____________________")
       break;
       case "LogPasswordUsed":
       break;
@@ -83,11 +140,18 @@ async function getTXCount() {
 
 module.exports = {
 
+  // key: citizenAccount, value: {"whenRegistered": val}
   allCitizens: {},
 
+  // key: when, value: {"adjustedWeiToDollarCent": val, "totalamountOfBasicIncomeInWei": val, "amountOfCitizens": val, "amountOfBasicIncomeCanBeIncreased": val}
+  allUBIs: {},
+
   createUBI: async function () {
+    //TODO: don't always send the transaction, but call first to check wether the TX will revert
     try {
       let dollarCentInWei = await helpers.getDollarCentInWei();
+      //TODO: when the dollar rate has changed by more than 5%, take the 5% boundary
+      dollarCentInWei = 60332188286475 // for testing purposes
       let encoded = contractInstance.methods.createUBI(dollarCentInWei).encodeABI()
 
       var tx = {
@@ -110,19 +174,19 @@ module.exports = {
       .once('confirmation', function(confirmationNumber, receipt){
         if(confirmationNumber == 1) {
           if(receipt.status == false) {
-            console.errror("Could not create UBI ", receipt)
+            console.error("Could not create UBI ", receipt)
           } else {
             console.log("Created UBI ", receipt)
           }
         }
       })
       .on('error', function(error)  {
-        console.errror("Could not create UBI ", error)
+        console.error("Could not create UBI ", error)
 
       })
     }
     catch (err) {
-      console.errror("Could not create UBI ", err)
+      console.error("Could not create UBI ", err)
     }
   },
 
@@ -206,6 +270,40 @@ module.exports = {
     catch(err) {
       res.json({"error": "error in sending transaction" + err})
     }
+  },
 
+  getAmountOfBasicIncome: async function() {
+    return contractInstance.methods.amountOfBasicIncome().call()
+  },
+
+  getMinimumPeriod: async function() {
+    return contractInstance.methods.minimumPeriod().call()
+  },
+
+  getRightFromPaymentsCycle: async function(account) {
+    return contractInstance.methods.rightFromPaymentCycle(account).call()
+  },
+
+  getUBIAtCycle: function(paymentsCycle) {
+    let UBIs = Object.values(module.exports.allUBIs)
+
+    for(let index in UBIs) {
+      if(UBIs[index].paymentsCycle == paymentsCycle) {
+        return{"whenPaid": Object.keys(module.exports.allUBIs)[index], "UBI": UBIs[index]}
+      }
+    }
+  },
+
+  getLastUBI: function() {
+    let highestKey = 0;
+    let UBICreationTimes = Object.keys(module.exports.allUBIs)
+    for(let index in UBICreationTimes) {
+      if(UBICreationTimes[index] > highestKey) {
+        highestKey = UBICreationTimes[index];
+      }
+    }
+    return {"whenPaid": highestKey, "UBI": module.exports.allUBIs[highestKey]}
   }
+
+
 };

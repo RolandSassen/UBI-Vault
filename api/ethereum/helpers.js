@@ -36,5 +36,9 @@ module.exports = {
 
   getPastEventsFrom: async function(contractInstance) {
     return await contractInstance.getPastEvents("allEvents", {fromBlock:0})
+  },
+
+  getBalance: async function(account) {
+    return await web3js.eth.getBalance(account)
   }
 }

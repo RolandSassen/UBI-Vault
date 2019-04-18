@@ -5,6 +5,8 @@
 // /getData
 
     const ubiVault = require("./../ethereum/ubiVault.js");
+    const helpers = require("./../ethereum/helpers.js");
+
     // packages
     const cron = require("node-cron");
     const express = require("express");
@@ -79,8 +81,18 @@
     ubiVault.claimUBI(citizens,res);
   });
 
-  app.get('/getCitizen', async function() {
-
+  app.get('/getCitizen', async function(req, res) {
+    let account = req.body.account
+    let balance = await helpers.getBalance(account)
+    let basicIncome = await ubiVault.getAmountOfBasicIncome()
+    let whenRegistered = ubiVault.allCitizens[account].whenRegistered
+    let lastUBI = ubiVault.getLastUBI()
+    let rightFromPaymentCycle = await ubiVault.getRightFromPaymentsCycle(account)
+    let minimumPeriod = await ubiVault.getMinimumPeriod()
+    let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle)
+    let lastClaimed = lastUBI.whenPaid > whenRegistered ? UBIAtPaymentsCyle.whenPaid : null
+    let expectedPayment = lastUBI.whenPaid + minimumPeriod
+    res.json({"balance": balance, "basicIncome": basicIncome, "lastClaimed": lastClaimed, "expectedPayment": expectedPayment})
   })
 
 
