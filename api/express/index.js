@@ -120,7 +120,7 @@
   cron.schedule("*/3 * * * *", function() {
     console.log("---------------------");
     console.log("Running Cron Job createUBI");
-    ubiVault.createUBI();
+    ubiVault.createUBI(false);
   });
 
 

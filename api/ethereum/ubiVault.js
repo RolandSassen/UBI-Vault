@@ -64,9 +64,6 @@ async function populateAllcitizens(_contractInstance) {
       case "SetSettleAllowance":
       break;
       case "SetSettleAllowance":
-      break;
-      case "LogUBIClaimed":
-      break;
     }
   }
   console.log("Read all past Events:")
@@ -123,9 +120,6 @@ function watchForNewEvents(_contractInstance) {
       case "SetSettleAllowance":
       break;
       case "SetSettleAllowance":
-      break;
-      case "LogUBIClaimed":
-      break;
     }
   })
 }
@@ -151,9 +145,9 @@ module.exports = {
   // key: when, value: {"adjustedWeiToDollarCent": val, "totalamountOfBasicIncomeInWei": val, "amountOfCitizens": val, "amountOfBasicIncomeCanBeIncreased": val}
   allUBIs: {},
 
-  createUBI: async function () {
+  createUBI: async function (onlyOne) {
     let newDollarCentInWei = await helpers.getDollarCentInWei();
-    let currentSmartContractDollarCentInWei = await module.exports.getDollarCentInWei()
+    let currentSmartContractDollarCentInWei = await module.exports.weiToDollarCent()
     let upperBoundary = 1.05 * currentSmartContractDollarCentInWei
     let lowerBoundary = 0.95 * currentSmartContractDollarCentInWei
     if(newDollarCentInWei > upperBoundary) {
@@ -187,13 +181,12 @@ module.exports = {
         web3js.eth.sendSignedTransaction(signedRawTransaction)
         .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
         .once('confirmation', function(confirmationNumber, receipt) {
-//          console.log("confirmationNumber", confirmationNumber);
           if(confirmationNumber == 0) {
             if(receipt.status == false) {
               console.error("Could not create UBI ", receipt)
             } else {
               console.log("Succeeded CreateUBI in block", receipt.blockNumber)
-              module.exports.claimUBI()
+              module.exports.claimUBI(onlyOne)
             }
           }
         })
@@ -210,63 +203,48 @@ module.exports = {
     }
   },
 
-  claimUBI: async function() {
+  claimUBI: async function(onlyOne) {
     console.log("Calling Smart Contract: claimUBIOwner")
     let citizens =  Object.keys(module.exports.allCitizens)
     let validatedCitizens = []
+    for(let index in citizens) {
+      if(await contractInstance.methods.claimUBIOwner([citizens[index], onlyOne]).call({from: fromAddress})) {
+        validatedCitizens.push(citizens[index])
+      }
+    }
 
     try {
-
-      for(let index in citizens) {
-        let canclaimUBI = await contractInstance.methods.claimUBIOwner([citizens[index].toString()]).call({from: fromAddress})
-
-        // let canclaimUBI = await web3js.eth.call({
-        //     to: scAddress,
-        //     data: contractInstance.methods.claimUBIOwner([citizens[index].toString()]).encodeABI()
-        //   })
-
-        if(canclaimUBI) {
-          validatedCitizens.push(citizens[index])
-        }
+      let encoded = contractInstance.methods.claimUBIOwner(validatedCitizens, onlyOne).encodeABI()
+      var tx = {
+        nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
+        to : scAddress,
+        from: fromAddress,
+        data : encoded,
+        gasLimit: web3js.utils.toHex(1200000),
+        gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
+        value: 0,
+        chainId: web3js.utils.toHex(deployedToNetwork)
       }
 
-      if(validatedCitizens.length > 0)
-      {
-        let encoded = contractInstance.methods.claimUBIOwner(validatedCitizens).encodeABI()
-        var tx = {
-          nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
-          to : scAddress,
-          from: fromAddress,
-          data : encoded,
-          gasLimit: web3js.utils.toHex(1200000),
-          gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
-          value: 0,
-          chainId: web3js.utils.toHex(deployedToNetwork)
-        }
+      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
+      let signedRawTransaction = signedTransaction.rawTransaction
 
-        let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
-        let signedRawTransaction = signedTransaction.rawTransaction
-
-        web3js.eth.sendSignedTransaction(signedRawTransaction)
-        .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
-        .once('confirmation', function(confirmationNumber, receipt){
-          if(confirmationNumber == 0) {
-            if(receipt.status == false) {
-              console.error("Could not claim UBI ", receipt)
-            } else {
-              console.log("Succeeded claimUBIOwner in block", receipt.blockNumber)
-  //            res.json({"receipt": receipt})
-            }
+      web3js.eth.sendSignedTransaction(signedRawTransaction)
+      .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
+      .once('confirmation', function(confirmationNumber, receipt){
+        if(confirmationNumber == 0) {
+          if(receipt.status == false) {
+            console.error("Could not claim UBI ", receipt)
+          } else {
+            console.log("Succeeded claimUBIOwner in block", receipt.blockNumber)
+//            res.json({"receipt": receipt})
           }
-        })
-        .on('error', function(error)  {
-          console.error("Could not claim UBI ", error)
-        })
+        }
+      })
+      .on('error', function(error)  {
+        console.error("Could not claim UBI ", error)
+      })
 
-      }
-      else {
-        console.error("Could not claim UBI ")
-      }
     }
     catch(err) {
       console.error("Could not claim UBI ", err)
