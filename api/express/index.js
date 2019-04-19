@@ -79,7 +79,6 @@
         let rightFromPaymentCycle = await ubiVault.getRightFromPaymentsCycle(account)
         let minimumPeriod = await ubiVault.getMinimumPeriod()
         let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle - 1)
-
         let lastClaimed = lastUBI.whenPaid > whenRegistered ? UBIAtPaymentsCyle.whenPaid : null
         let expectedPayment = lastUBI.whenPaid + minimumPeriod
         res.json({"balance": balance, "basicIncome": basicIncome, "lastClaimed": lastClaimed, "expectedPayment": expectedPayment})
@@ -104,13 +103,13 @@
     let availableEther = await ubiVault.getAvailableEther()
     availableEther = parseInt(availableEther.toString(10))
     available = availableEther.toString(10)
-    let totalDistributed = ubiVault.getTotalDistributed()
-    let numberOfCitizens = Object.keys(ubiVault.allCitizens).length
+    let totalDistributed = ubiVault.getTotalDistributed().toString(10)
+    let numberOfCitizens = Object.keys(ubiVault.allCitizens).length.toString(10)
     res.json({
       "basicIncome": basicIncome,
       "lastPayment": lastPayment,
       "expectedPayment": expectedPayment,
-      "availableEther": availableEther,
+      "availableEther": available,
       "totalDistributed": totalDistributed,
       "numberOfCitizens": numberOfCitizens
     })
