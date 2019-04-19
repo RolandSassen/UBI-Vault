@@ -62,7 +62,7 @@ contract UBIVault is Ownable, PausableDestroyable {
     }
 
     function claimUBIPublic() public {
-        require(claimUBI(msg.sender));
+        require(claimUBI(msg.sender), "There is no claimable UBI available for your account");
     }
 
     //TODO: add description
@@ -88,9 +88,9 @@ contract UBIVault is Ownable, PausableDestroyable {
     function createUBI(uint256 adjustedWeiToDollarCent) public onlyOwner {
         uint256 adjustedWeiToDollar = adjustedWeiToDollarCent.mul(100);
         // We only allow a fluctuation of 5% per UBI creation
-        require(adjustedWeiToDollar >= weiToDollarCent.mul(95) && adjustedWeiToDollar <= weiToDollarCent.mul(105));
-        require(lastPayout <= now - minimumPeriod);
-        require(availableEther.div(weiToDollarCent).div(amountOfCitizens) >= amountOfBasicIncome);
+        require(adjustedWeiToDollar >= weiToDollarCent.mul(95) && adjustedWeiToDollar <= weiToDollarCent.mul(105), "The exchange rate can only fluctuate +- 5% per createUBI call");
+        require(lastPayout <= now - minimumPeriod, "You should wait the required time in between createUBI calls");
+        require(availableEther.div(weiToDollarCent).div(amountOfCitizens) >= amountOfBasicIncome, "There are not enough funds in the UBI contract to sustain another UBI");
         weiToDollarCent = adjustedWeiToDollarCent;
         uint256 totalamountOfBasicIncomeInWei = adjustedWeiToDollarCent.mul(amountOfBasicIncome).mul(amountOfCitizens);
         availableEther = availableEther.sub(totalamountOfBasicIncomeInWei);
@@ -115,13 +115,13 @@ contract UBIVault is Ownable, PausableDestroyable {
     }
 
     function registerCitizenOwner(address newCitizen) public onlyOwner {
-        require(newCitizen != address(0));
+        require(newCitizen != address(0) , "NewCitizen cannot be the 0 address");
         registerCitizen(newCitizen);
     }
 
     function registerCitizenPublic(bytes32 password) public {
         bytes32 passwordHash = keccak256(abi.encodePacked(password));
-        require(useablePasswordHashes[passwordHash] && !usedPasswordHashes[passwordHash]);
+        require(useablePasswordHashes[passwordHash] && !usedPasswordHashes[passwordHash], "Password is not known or already used");
         usedPasswordHashes[passwordHash] = true;
         registerCitizen(msg.sender);
         emit LogPasswordUsed(password, passwordHash);
@@ -143,7 +143,7 @@ contract UBIVault is Ownable, PausableDestroyable {
      * decreases the promisedEther (which is increased in the function createUBI)
     */
     function claimUBI(address payable citizen) internal returns(bool) {
-        require(rightFromPaymentCycle[citizen] != 0);
+        require(rightFromPaymentCycle[citizen] != 0, "Citizen not registered");
         uint256 incomeClaims = paymentsCycle.length - rightFromPaymentCycle[citizen];
         uint256 income;
         if(incomeClaims == 1) {
@@ -176,7 +176,7 @@ contract UBIVault is Ownable, PausableDestroyable {
     */
     ///@dev Increases the variable rightFromPaymentCycle for a citizen (also increased in the function claimUBI)
     function registerCitizen(address newCitizen) internal {
-        require(rightFromPaymentCycle[newCitizen] == 0);
+        require(rightFromPaymentCycle[newCitizen] == 0, "Citizen already registered");
         rightFromPaymentCycle[newCitizen] = paymentsCycle.length;
         amountOfCitizens++;
         emit LogCitizenRegistered(newCitizen);
