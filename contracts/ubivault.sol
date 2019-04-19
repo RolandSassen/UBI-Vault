@@ -51,18 +51,18 @@ contract UBIVault is Ownable, PausableDestroyable {
         paymentsCycle.push(0);
     }
 
-    function claimUBIOwner(address payable[] memory citizens) public onlyOwner returns(bool) {
+    function claimUBIOwner(address payable[] memory citizens, bool onlyOne) public onlyOwner returns(bool) {
         bool allRequestedCitizensGotPayout = true;
         for(uint256 i = 0; i < citizens.length; i++) {
-            if(!claimUBI(citizens[i])) {
+            if(!claimUBI(citizens[i], onlyOne)) {
               allRequestedCitizensGotPayout = false;
             }
         }
         return allRequestedCitizensGotPayout;
     }
 
-    function claimUBIPublic() public {
-        require(claimUBI(msg.sender), "There is no claimable UBI available for your account");
+    function claimUBIPublic(bool onlyOne) public {
+        require(claimUBI(msg.sender, onlyOne), "There is no claimable UBI available for your account");
     }
 
     //TODO: add description
@@ -142,20 +142,23 @@ contract UBIVault is Ownable, PausableDestroyable {
      * increases the rightFromPaymentCycle for the caller (also increased in the function registerCitizen)
      * decreases the promisedEther (which is increased in the function createUBI)
     */
-    function claimUBI(address payable citizen) internal returns(bool) {
+    function claimUBI(address payable citizen, bool onlyOne) internal returns(bool) {
         require(rightFromPaymentCycle[citizen] != 0, "Citizen not registered");
         uint256 incomeClaims = paymentsCycle.length - rightFromPaymentCycle[citizen];
         uint256 income;
-        if(incomeClaims == 1) {
-            income = paymentsCycle[paymentsCycle.length - 1];
+        uint256 paymentsCycleLength = paymentsCycle.length;
+        if(onlyOne && incomeClaims > 0) {
+          income = paymentsCycle[paymentsCycleLength - incomeClaims];
+        } else if(incomeClaims == 1) {
+            income = paymentsCycle[paymentsCycleLength - 1];
         } else if(incomeClaims > 1) {
             for(uint256 index; index < incomeClaims; index++) {
-                income = income.add(paymentsCycle[paymentsCycle.length - incomeClaims + index]);
+                income = income.add(paymentsCycle[paymentsCycleLength - incomeClaims + index]);
             }
         } else {
             return false;
         }
-        rightFromPaymentCycle[citizen] = paymentsCycle.length;
+        rightFromPaymentCycle[citizen] = paymentsCycleLength;
         promisedEther = promisedEther.sub(income);
         citizen.transfer(income);
         emit LogUBIClaimed(msg.sender, income, citizen);
