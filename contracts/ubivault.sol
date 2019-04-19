@@ -94,6 +94,11 @@ contract UBIVault is Ownable, PausableDestroyable {
         weiToDollarCent = adjustedWeiToDollarCent;
         uint256 totalamountOfBasicIncomeInWei = adjustedWeiToDollarCent.mul(amountOfBasicIncome).mul(amountOfCitizens);
         availableEther = availableEther.sub(totalamountOfBasicIncomeInWei);
+        promisedEther = promisedEther.add(totalamountOfBasicIncomeInWei);
+
+        paymentsCycle.push(adjustedWeiToDollarCent.mul(amountOfBasicIncome));
+        lastPayout = now;
+
         // if there is enough income available (7$)
         if(availableEther >= adjustedWeiToDollarCent.mul(700).mul(amountOfCitizens)) {
             // and we increased it twice before,
@@ -108,9 +113,6 @@ contract UBIVault is Ownable, PausableDestroyable {
         } else if(amountOfBasicIncomeCanBeIncreased != 0) {
             amountOfBasicIncomeCanBeIncreased == 0;
         }
-        promisedEther = promisedEther.add(totalamountOfBasicIncomeInWei);
-        paymentsCycle.push(adjustedWeiToDollarCent.mul(amountOfBasicIncome));
-        lastPayout = now;
         emit LogUBICreated(adjustedWeiToDollarCent, totalamountOfBasicIncomeInWei, amountOfCitizens, amountOfBasicIncomeCanBeIncreased, paymentsCycle.length - 1);
     }
 
