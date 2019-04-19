@@ -146,8 +146,16 @@ module.exports = {
   allUBIs: {},
 
   createUBI: async function () {
-    let dollarCentInWei = await helpers.getDollarCentInWei();
-    let canCreateUBI = await contractInstance.methods.createUBI(dollarCentInWei).call({from: fromAddress})
+    let newDollarCentInWei = await helpers.getDollarCentInWei();
+    let currentSmartContractDollarCentInWei = await module.exports.getDollarCentInWei()
+    let upperBoundary = 1.05 * currentSmartContractDollarCentInWei
+    let lowerBoundary = 0.95 * currentSmartContractDollarCentInWei
+    if(newDollarCentInWei > upperBoundary) {
+      newDollarCentInWei = upperBoundary
+    } else if(newDollarCentInWei < lowerBoundary) {
+      newDollarCentInWei = lowerBoundary
+    }
+    let canCreateUBI = await contractInstance.methods.createUBI(newDollarCentInWei).call({from: fromAddress})
     if(canCreateUBI) {
       console.log("Calling Smart Contract: createUBI")
       try {
@@ -329,6 +337,10 @@ module.exports = {
     }
     return totalDistributed
 
+  },
+
+  getWeiToDollarCent: async function() {
+    return contractInstance.weiToDollarCent().call();
   }
 
 

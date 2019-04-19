@@ -88,7 +88,7 @@ contract UBIVault is Ownable, PausableDestroyable {
     function createUBI(uint256 adjustedWeiToDollarCent) public onlyOwner {
         uint256 adjustedWeiToDollar = adjustedWeiToDollarCent.mul(100);
         // We only allow a fluctuation of 5% per UBI creation
-        //require(adjustedWeiToDollar >= weiToDollarCent.mul(95) && adjustedWeiToDollar <= weiToDollarCent.mul(105));
+        require(adjustedWeiToDollar >= weiToDollarCent.mul(95) && adjustedWeiToDollar <= weiToDollarCent.mul(105));
         require(lastPayout <= now - minimumPeriod);
         require(availableEther.div(weiToDollarCent).div(amountOfCitizens) >= amountOfBasicIncome);
         weiToDollarCent = adjustedWeiToDollarCent;
@@ -167,7 +167,7 @@ contract UBIVault is Ownable, PausableDestroyable {
       uint256 increaseInAvailableEther = msg.value.mul(95) / 100;
       availableEther = availableEther.add(increaseInAvailableEther);
       maintenancePool.transfer(msg.value - increaseInAvailableEther);
-      emit LogVaultSponsored(msg.sender, bytes32(0), msg.value);
+      emit LogVaultSponsored(msg.sender, message, msg.value);
     }
 
      /**@notice
