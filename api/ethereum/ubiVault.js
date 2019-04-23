@@ -44,14 +44,14 @@ async function populateAllcitizens(_contractInstance) {
       break
       case "LogUBICreated":
         let whenCreated = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
-        let adjustedWeiToDollarCent = myEvent.returnValues.adjustedWeiToDollarCent
+        let adjustedDollarCentInWei = myEvent.returnValues.adjustedDollarCentInWei
         let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei
         let amountOfCitizens = myEvent.returnValues.amountOfCitizens
         let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased
         let paymentsCycle = myEvent.returnValues.paymentsCycle
         module.exports.allUBIs[whenCreated] = {
           "paymentsCycle": paymentsCycle,
-          "adjustedWeiToDollarCent": adjustedWeiToDollarCent,
+          "adjustedDollarInWei": adjustedDollarCentInWei,
           "totalamountOfBasicIncomeInWei": totalamountOfBasicIncomeInWei,
           "amountOfCitizens": amountOfCitizens,
           "amountOfBasicIncomeCanBeIncreased": amountOfBasicIncomeCanBeIncreased
@@ -96,14 +96,14 @@ function watchForNewEvents(_contractInstance) {
       break
       case "LogUBICreated":
         let whenCreated = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
-        let adjustedWeiToDollarCent = myEvent.returnValues.adjustedWeiToDollarCent
+        let adjustedDollarCentInWei = myEvent.returnValues.adjustedDollarCentInWei
         let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei
         let amountOfCitizens = myEvent.returnValues.amountOfCitizens
         let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased
         let paymentsCycle = myEvent.returnValues.paymentsCycle
         module.exports.allUBIs[whenCreated] = {
           "paymentsCycle": paymentsCycle,
-          "adjustedWeiToDollarCent": adjustedWeiToDollarCent,
+          "adjustedDollarCentInWei": adjustedDollarCentInWei,
           "totalamountOfBasicIncomeInWei": totalamountOfBasicIncomeInWei,
           "amountOfCitizens": amountOfCitizens,
           "amountOfBasicIncomeCanBeIncreased": amountOfBasicIncomeCanBeIncreased
@@ -112,6 +112,7 @@ function watchForNewEvents(_contractInstance) {
         console.log("UBIs: ")
         console.log(module.exports.allUBIs)
         console.log("____________________")
+        module.exports.claimUBI(false)
       break;
       case "LogPasswordUsed":
       break;
@@ -142,26 +143,28 @@ module.exports = {
   // key: citizenAccount, value: {"whenRegistered": val}
   allCitizens: {},
 
-  // key: when, value: {"adjustedWeiToDollarCent": val, "totalamountOfBasicIncomeInWei": val, "amountOfCitizens": val, "amountOfBasicIncomeCanBeIncreased": val}
+  // key: when, value: {"adjustedDollarCentInWei": val, "totalamountOfBasicIncomeInWei": val, "amountOfCitizens": val, "amountOfBasicIncomeCanBeIncreased": val}
   allUBIs: {},
 
   createUBI: async function (onlyOne) {
-    let newDollarCentInWei = await helpers.getDollarCentToWei();
-    let currentSmartContractDollarCentInWei = await module.exports.getWeiToDollarCent()
+    let newDollarCentInWei = await helpers.getDollarCentInWei();
+    let currentSmartContractDollarCentInWei = await module.exports.getDollarCentInWei()
     let upperBoundary = 1.05 * currentSmartContractDollarCentInWei
     let lowerBoundary = 0.95 * currentSmartContractDollarCentInWei
     if(newDollarCentInWei > upperBoundary) {
-      newDollarCentInWei = upperBoundary
+      newDollarCentInWei = Math.floor(upperBoundary)
     } else if(newDollarCentInWei < lowerBoundary) {
-      newDollarCentInWei = lowerBoundary
+      newDollarCentInWei = Math.ceil(lowerBoundary)
     }
-    let canCreateUBI = await contractInstance.methods.createUBI(newDollarCentInWei).call({from: fromAddress})
-    if(canCreateUBI) {
+    // let canCreateUBI = await contractInstance.methods.createUBI(newDollarCentInWei).call({from: fromAddress})
+    // console.log(canCreateUBI)
+    // if(canCreateUBI), but the call method of web3 does not work
+    if(true) {
       console.log("Calling Smart Contract: createUBI")
       try {
         //TODO: when the dollar rate has changed by more than 5%, take the 5% boundary
         //dollarCentInWei = 60332188286475 // for testing purposes
-        let encoded = contractInstance.methods.createUBI(dollarCentInWei).encodeABI()
+        let encoded = contractInstance.methods.createUBI(newDollarCentInWei).encodeABI()
 
         var tx = {
           nonce: web3js.utils.toHex(await getTXCount()),
@@ -180,19 +183,8 @@ module.exports = {
 
         web3js.eth.sendSignedTransaction(signedRawTransaction)
         .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
-        .once('confirmation', function(confirmationNumber, receipt) {
-          if(confirmationNumber == 0) {
-            if(receipt.status == false) {
-              console.error("Could not create UBI ", receipt)
-            } else {
-              console.log("Succeeded CreateUBI in block", receipt.blockNumber)
-              module.exports.claimUBI(onlyOne)
-            }
-          }
-        })
         .on('error', function(error)  {
           console.error("Could not create UBI ", error)
-
         })
       }
       catch (err) {
@@ -206,12 +198,15 @@ module.exports = {
   claimUBI: async function(onlyOne) {
     console.log("Calling Smart Contract: claimUBIOwner")
     let citizens =  Object.keys(module.exports.allCitizens)
-    let validatedCitizens = []
-    for(let index in citizens) {
-      if(await contractInstance.methods.claimUBIOwner([citizens[index], onlyOne]).call({from: fromAddress})) {
-        validatedCitizens.push(citizens[index])
-      }
-    }
+    // the call method of web3 does not work
+    // let validatedCitizens = []
+    // for(let index in citizens) {
+    //   if(await contractInstance.methods.claimUBIOwner([citizens[index], onlyOne]).call({from: fromAddress})) {
+    //     validatedCitizens.push(citizens[index])
+    //   }
+    // }
+
+    let validatedCitizens = citizens
 
     try {
       let encoded = contractInstance.methods.claimUBIOwner(validatedCitizens, onlyOne).encodeABI()
@@ -333,14 +328,16 @@ module.exports = {
     let UBIs = Object.values(module.exports.allUBIs)
     for(let index in UBIs) {
       let UBI = UBIs[index]
-      totalDistributed = UBI.totalamountOfBasicIncomeInWei / UBI.adjustedWeiToDollarCent
+      console.log(UBI)
+      totalDistributed = totalDistributed + (UBI.totalamountOfBasicIncomeInWei / UBI.adjustedDollarInWei)
+      console.log(totalDistributed)
     }
     return totalDistributed
 
   },
 
   getDollarCentInWei: async function() {
-    return contractInstance.dollarCentInWei().call();
+    return contractInstance.methods.dollarCentInWei().call();
   }
 
 

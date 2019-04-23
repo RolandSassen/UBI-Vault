@@ -69,19 +69,30 @@
 
   app.get('/getCitizen', async function(req, res) {
     let account = req.body.account
+    let dollarCentInWei = await helpers.getDollarCentInWei()
+    let date = new Date()
     try {
-      let balance = await helpers.getBalance(account)
-      let basicIncome = await ubiVault.getAmountOfBasicIncome()
+      let balance = Math.round((await helpers.getBalance(account)) / dollarCentInWei * 100) / 100
+
+      let basicIncome = parseInt(await ubiVault.getAmountOfBasicIncome())
       if(ubiVault.allCitizens[account] != null)
       {
-        let whenRegistered = ubiVault.allCitizens[account].timeRegistered
+        let whenRegistered = parseInt(ubiVault.allCitizens[account].timeRegistered)
         let lastUBI = ubiVault.getLastUBI()
-        let rightFromPaymentCycle = await ubiVault.getRightFromPaymentsCycle(account)
-        let minimumPeriod = await ubiVault.getMinimumPeriod()
-        let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle - 1)
-        let lastClaimed = lastUBI.whenPaid > whenRegistered ? UBIAtPaymentsCyle.whenPaid : null
-        let expectedPayment = lastUBI.whenPaid + minimumPeriod
-        res.json({"balance": balance, "basicIncome": basicIncome, "lastClaimed": lastClaimed, "expectedPayment": expectedPayment})
+        let rightFromPaymentCycle = parseInt(await ubiVault.getRightFromPaymentsCycle(account))
+        let minimumPeriod = parseInt(await ubiVault.getMinimumPeriod())
+        let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle)
+        let lastClaimed = parseInt(lastUBI.whenPaid) > whenRegistered ? parseInt(UBIAtPaymentsCyle.whenPaid) : null
+        let expectedPayment = parseInt(lastUBI.whenPaid) + minimumPeriod
+        if(expectedPayment < 31557600 * 10) { // there has been no UBI payment before
+          expectedPayment = date.getTime()
+        }
+        res.json({
+          "balance": balance,
+          "basicIncome": basicIncome,
+          "lastClaimed": lastClaimed,
+          "expectedPaymentAtTime": expectedPayment
+        })
       }
       else {
         res.json({"error": "Account not registered"})
@@ -94,25 +105,35 @@
   })
 
   app.get('/getData', async function(req, res) {
-    let basicIncome = await ubiVault.getAmountOfBasicIncome()
-    basicIncome = basicIncome.toString(10)
-    let lastUBI = ubiVault.getLastUBI()
-    let lastPayment = lastUBI.whenPaid
-    let minimumPeriod = await ubiVault.getMinimumPeriod()
-    let expectedPayment = lastPayment + parseInt(minimumPeriod.toString(10))
-    let availableEther = await ubiVault.getAvailableEther()
-    availableEther = parseInt(availableEther.toString(10))
-    available = availableEther.toString(10)
-    let totalDistributed = ubiVault.getTotalDistributed().toString(10)
-    let numberOfCitizens = Object.keys(ubiVault.allCitizens).length.toString(10)
-    res.json({
-      "basicIncome": basicIncome,
-      "lastPayment": lastPayment,
-      "expectedPayment": expectedPayment,
-      "availableEther": available,
-      "totalDistributed": totalDistributed,
-      "numberOfCitizens": numberOfCitizens
-    })
+    try {
+      let date = new Date()
+      let basicIncome = parseInt(await ubiVault.getAmountOfBasicIncome())
+      let lastUBI = ubiVault.getLastUBI()
+      let minimumPeriod = parseInt(await ubiVault.getMinimumPeriod())
+      let lastPayment = parseInt(lastUBI.whenPaid)
+      let expectedPayment = parseInt(lastPayment + parseInt(minimumPeriod))
+      if(expectedPayment < 31557600 * 10) { // there has been no UBI payment before
+        expectedPayment = date.getTime()
+      }
+      if(lastPayment == 0) {
+        lastPayment = null
+      }
+      let availableWei = await ubiVault.getAvailableEther()
+      availableWei = parseInt(availableWei)
+      let totalDistributed = parseInt(ubiVault.getTotalDistributed())
+      let numberOfCitizens = parseInt(Object.keys(ubiVault.allCitizens).length)
+      res.json({
+        "basicIncome": basicIncome,
+        "lastPayment": lastPayment,
+        "expectedPaymentAtTime": expectedPayment,
+        "availableWei": availableWei,
+        "totalDistributed": totalDistributed,
+        "numberOfCitizens": numberOfCitizens
+      })
+    } catch(err) {
+      res.json({"error": "Could not get the requested data"})
+    }
+
   })
 
 
