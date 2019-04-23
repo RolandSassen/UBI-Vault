@@ -21,7 +21,7 @@ contract UBIVault is Ownable, PausableDestroyable {
     uint8 public amountOfBasicIncomeCanBeIncreased;
     uint256 public amountOfBasicIncome;
     uint256 public amountOfCitizens;
-    uint256 public weiToDollarCent;
+    uint256 public dollarCentInWei;
     uint256 public availableEther;
     address payable public maintenancePool;
     uint256 public minimumPeriod;
@@ -30,7 +30,7 @@ contract UBIVault is Ownable, PausableDestroyable {
     uint256[] public paymentsCycle;
 
     event LogUseablePasswordCreated(bytes32 passwordHash);
-    event LogUBICreated(uint256 adjustedWeiToDollarCent, uint256 totalamountOfBasicIncomeInWei, uint256 amountOfCitizens, uint8 amountOfBasicIncomeCanBeIncreased, uint256 paymentsCycle);
+    event LogUBICreated(uint256 adjustedDollarCentInWei, uint256 totalamountOfBasicIncomeInWei, uint256 amountOfCitizens, uint8 amountOfBasicIncomeCanBeIncreased, uint256 paymentsCycle);
     event LogCitizenRegistered(address newCitizen);
     event LogPasswordUsed(bytes32 password, bytes32 passwordHash);
     event LogVaultSponsored(address payee, bytes32 message, uint256 amount);
@@ -41,11 +41,11 @@ contract UBIVault is Ownable, PausableDestroyable {
     constructor(
         uint256 initialAB,
         uint256 initialMinimumPeriod,
-        uint256 initialWeiToDollarCent,
+        uint256 initialDollarCentInWei,
         address payable _maintenancePool
     ) public {
         minimumPeriod = initialMinimumPeriod;
-        weiToDollarCent = initialWeiToDollarCent;
+        dollarCentInWei = initialDollarCentInWei;
         amountOfBasicIncome = initialAB;
         maintenancePool = _maintenancePool;
         paymentsCycle.push(0);
@@ -85,22 +85,22 @@ contract UBIVault is Ownable, PausableDestroyable {
      * increases the lastPayout variable to the current time
      * sets the ether promised during this cycle as a new value in the paymentsCycle array (which is also set in the constructor)
     */
-    function createUBI(uint256 adjustedWeiToDollarCent) public onlyOwner {
-        uint256 adjustedWeiToDollar = adjustedWeiToDollarCent.mul(100);
+    function createUBI(uint256 adjustedDollarCentInWei) public onlyOwner {
+        uint256 adjustedDollarInWei = adjustedDollarCentInWei.mul(100);
+        uint256 totalamountOfBasicIncomeInWei = adjustedDollarCentInWei.mul(amountOfBasicIncome).mul(amountOfCitizens);
         // We only allow a fluctuation of 5% per UBI creation
-        require(adjustedWeiToDollar >= weiToDollarCent.mul(95) && adjustedWeiToDollar <= weiToDollarCent.mul(105), "The exchange rate can only fluctuate +- 5% per createUBI call");
+        require(adjustedDollarInWei >= dollarCentInWei.mul(95) && adjustedDollarInWei <= dollarCentInWei.mul(105), "The exchange rate can only fluctuate +- 5% per createUBI call");
         require(lastPayout <= now - minimumPeriod, "You should wait the required time in between createUBI calls");
-        require(availableEther.div(weiToDollarCent).div(amountOfCitizens) >= amountOfBasicIncome, "There are not enough funds in the UBI contract to sustain another UBI");
-        weiToDollarCent = adjustedWeiToDollarCent;
-        uint256 totalamountOfBasicIncomeInWei = adjustedWeiToDollarCent.mul(amountOfBasicIncome).mul(amountOfCitizens);
+        require(availableEther.div(adjustedDollarCentInWei).div(amountOfCitizens) >= amountOfBasicIncome, "There are not enough funds in the UBI contract to sustain another UBI");
+        dollarCentInWei = adjustedDollarCentInWei;
         availableEther = availableEther.sub(totalamountOfBasicIncomeInWei);
         promisedEther = promisedEther.add(totalamountOfBasicIncomeInWei);
 
-        paymentsCycle.push(adjustedWeiToDollarCent.mul(amountOfBasicIncome));
+        paymentsCycle.push(adjustedDollarCentInWei.mul(amountOfBasicIncome));
         lastPayout = now;
 
         // if there is enough income available (7$)
-        if(availableEther >= adjustedWeiToDollarCent.mul(700).mul(amountOfCitizens)) {
+        if(availableEther >= adjustedDollarCentInWei.mul(700).mul(amountOfCitizens)) {
             // and we increased it twice before,
             if(amountOfBasicIncomeCanBeIncreased == 2) {
                 amountOfBasicIncomeCanBeIncreased = 0;
@@ -113,7 +113,7 @@ contract UBIVault is Ownable, PausableDestroyable {
         } else if(amountOfBasicIncomeCanBeIncreased != 0) {
             amountOfBasicIncomeCanBeIncreased == 0;
         }
-        emit LogUBICreated(adjustedWeiToDollarCent, totalamountOfBasicIncomeInWei, amountOfCitizens, amountOfBasicIncomeCanBeIncreased, paymentsCycle.length - 1);
+        emit LogUBICreated(adjustedDollarCentInWei, totalamountOfBasicIncomeInWei, amountOfCitizens, amountOfBasicIncomeCanBeIncreased, paymentsCycle.length - 1);
     }
 
     function registerCitizenOwner(address newCitizen) public onlyOwner {
