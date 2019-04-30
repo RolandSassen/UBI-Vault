@@ -1,62 +1,67 @@
 // index.js
 
-// /getData
+  // getData
+  const ubiVault = require("./../ethereum/ubiVault.js");
+  const helpers = require("./../ethereum/helpers.js");
 
-    const ubiVault = require("./../ethereum/ubiVault.js");
-    const helpers = require("./../ethereum/helpers.js");
+  // packages
+  const cron = require("node-cron");
+  const express = require("express");
+  const fs = require("fs");
+  const path = require('path');
+  const rp = require('request-promise');
+  require('dotenv').config();
 
-    // packages
-    const cron = require("node-cron");
-    const express = require("express");
-    const fs = require("fs");
-    const path = require('path');
-    const dataDir = "./api/data/";
+  const dataDir = "./api/data/";
 
-    // create an express app
-    app = express();
-    app.use(express.json());
-
-
-    app.post('/activateCitizen', async function(req,res) {
-    let body = req.body
-    let account = body.account
-    let phoneNumber = body.phoneNumber
-    let secret = Math.floor(Math.random() * 100001);
-    let path = dataDir+account
-
-    if(!fs.existsSync(path)) {
-      fs.writeFile(path, secret, function(err) {
-        if(err) {
-          res.json({"error":"Could not activate your account " + err})
-        } else {
-          res.json({"secret":secret})
-          //SEND SECRET TO phoneNumber
-        }
-      })
-    } else {
-      res.json({"error": "Account already activated"})
-    }
-  });
+  // create an express app
+  app = express();
+  app.use(express.json());
 
   app.post('/registerCitizen', async function(req,res) {
     let body = req.body
     let account = body.account
-    let secret = body.secret
-    // check if there is a secret handed out at path dataDir+account
-    fs.readFile(dataDir+account, async function (err, data) {
-      if (err) {
-        res.json({"error": "Account not registered"})
-      } else {
-        if(secret == data) {
-          // we pass res to the ubiVault, and the ubiVault will populate the response
+    let phoneNumber = body.phoneNumber
+
+    let secretKey = process.env.SECRETKEY
+
+    //check if phoneNumber is verified via Firebase Phone Auth
+    var options = {
+        method: 'POST',
+        uri: 'https://us-central1-axveco-421de.cloudfunctions.net/ubivault/checkPhonenumberVerification',
+        body: {
+            key: secretKey.toString(),
+            phoneNumber: phoneNumber.toString()
+        },
+        json: true // Automatically parses the JSON string in the response
+    };
+
+    try {
+      let body = await rp(options)
+      if(body == 'verified') {
+
+        //if verified, register citizen in smart contract
+        if(ubiVault.allCitizens[account] == null) {
+//          console.log('unregistered')
           ubiVault.registerCitizenOwner(account, res)
         }
         else {
+//          console.log('registered')
+          res.status(403).send('account already registered as citizen');
 
-          res.json({"error": "secret is not correct"})
         }
       }
-    });
+      else {
+        console.log('phonenumber not verified')
+        res.status(403).send('phonenumber not verified');
+
+      }
+
+    }
+    catch(err) {
+      res.status(500).send(err);
+    }
+
   });
 
   app.post('/createUBI', async function(req,res) {
@@ -66,6 +71,23 @@
       ubiVault.createUBI(res);
 
   });
+
+  app.get('/checkCitizen', async function(req, res) {
+    let account = req.body.account
+    let registered = false;
+    try {
+      console.log(ubiVault.allCitizens[account])
+      res.json({
+        "registered": (ubiVault.allCitizens[account] != null)
+      })
+    }
+    catch(err) {
+//      res.json({"error": "error in checking account" + err})
+      res.status(500).send(err);
+
+    }
+  })
+
 
   app.get('/getCitizen', async function(req, res) {
     let account = req.body.account
@@ -95,12 +117,12 @@
         })
       }
       else {
-        res.json({"error": "Account not registered"})
-
+        res.status(403).send('Account not registered as citizen');
       }
     }
     catch(err) {
-      res.json({"error": "error in checking account" + err})
+      res.status(500).send(err);
+
     }
   })
 
@@ -131,7 +153,7 @@
         "numberOfCitizens": numberOfCitizens
       })
     } catch(err) {
-      res.json({"error": "Could not get the requested data"})
+      res.status(500).send(err);
     }
 
   })
