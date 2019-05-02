@@ -21,7 +21,7 @@
   app.post('/registerCitizen', async function(req,res) {
     let body = req.body
     let account = body.account
-    let phoneNumber = body.phoneNumber
+    let phoneNumber = body.phonenumber
 
     let secretKey = process.env.SECRETKEY
 
@@ -94,7 +94,7 @@
     let dollarCentInWei = await helpers.getDollarCentInWei()
     let date = new Date()
     try {
-      let balance = Math.round((await helpers.getBalance(account)) / dollarCentInWei * 100) / 100
+      let balance = Math.round((await helpers.getBalance(account)) / dollarCentInWei) 
 
       let basicIncome = parseInt(await ubiVault.getAmountOfBasicIncome())
       if(ubiVault.allCitizens[account] != null)
@@ -103,11 +103,13 @@
         let lastUBI = ubiVault.getLastUBI()
         let rightFromPaymentCycle = parseInt(await ubiVault.getRightFromPaymentsCycle(account))
         let minimumPeriod = parseInt(await ubiVault.getMinimumPeriod())
-        let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle)
+        let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle-1)
+
         let lastClaimed = parseInt(lastUBI.whenPaid) > whenRegistered ? parseInt(UBIAtPaymentsCyle.whenPaid) : null
         let expectedPayment = parseInt(lastUBI.whenPaid) + minimumPeriod
-        if(expectedPayment < 31557600 * 10) { // there has been no UBI payment before
-          expectedPayment = date.getTime()
+
+        if(expectedPayment < date.getTime()/1000) { // UBI can already be claimed, but first remove milliseconds
+          expectedPayment = parseInt(date.getTime()/1000)
         }
         res.json({
           "balance": balance,
@@ -121,6 +123,8 @@
       }
     }
     catch(err) {
+      console.log(err);
+
       res.status(500).send(err);
 
     }
@@ -160,11 +164,11 @@
 
 
   // schedule tasks to be run on the server
-  cron.schedule("*/3 * * * *", function() {
-    console.log("---------------------");
-    console.log("Running Cron Job createUBI");
-    ubiVault.createUBI(false);
-  });
+  // cron.schedule("*/3 * * * *", function() {
+  //   console.log("---------------------");
+  //   console.log("Running Cron Job createUBI");
+  //   ubiVault.createUBI(false);
+  // });
 
 
   app.listen(3000, () => console.log('App listening on port 3000!'))
