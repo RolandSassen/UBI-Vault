@@ -34,7 +34,6 @@ contract UBIVault is Ownable, PausableDestroyable {
     event LogCitizenRegistered(address newCitizen);
     event LogPasswordUsed(bytes32 password, bytes32 passwordHash);
     event LogVaultSponsored(address payee, bytes32 message, uint256 amount);
-
     event LogUBIClaimed(address indexed caller, uint256 income, address indexed citizen);
 
     ///@dev we set the first value in the paymentsCycle array, because 0 is the default value for the rightFromPaymentCycle for all addresses.
@@ -89,7 +88,7 @@ contract UBIVault is Ownable, PausableDestroyable {
         uint256 adjustedDollarInWei = adjustedDollarCentInWei.mul(100);
         uint256 totalamountOfBasicIncomeInWei = adjustedDollarCentInWei.mul(amountOfBasicIncome).mul(amountOfCitizens);
         // We only allow a fluctuation of 5% per UBI creation
-        require(adjustedDollarInWei >= dollarCentInWei.mul(95) && adjustedDollarInWei <= dollarCentInWei.mul(105), "The exchange rate can only fluctuate +- 5% per createUBI call");
+//        require(adjustedDollarInWei >= dollarCentInWei.mul(95) && adjustedDollarInWei <= dollarCentInWei.mul(105), "The exchange rate can only fluctuate +- 5% per createUBI call");
         require(lastPayout <= now - minimumPeriod, "You should wait the required time in between createUBI calls");
         require(availableEther.div(adjustedDollarCentInWei).div(amountOfCitizens) >= amountOfBasicIncome, "There are not enough funds in the UBI contract to sustain another UBI");
         dollarCentInWei = adjustedDollarCentInWei;
