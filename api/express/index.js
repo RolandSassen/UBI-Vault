@@ -42,11 +42,9 @@
 
         //if verified, register citizen in smart contract
         if(ubiVault.allCitizens[account] == null) {
-//          console.log('unregistered')
           ubiVault.registerCitizenOwner(account, res)
         }
         else {
-//          console.log('registered')
           res.status(403).send('account already registered as citizen');
 
         }
@@ -64,11 +62,16 @@
 
   });
 
-  app.post('/createUBI', async function(req,res) {
+  app.post('/createUBI', async function(req, res) {
+    try {
+        await ubiVault.createUBI()
+        res.status(200).send();
+    } catch (err) {
+      console.log(err)
+      next(err)
+      res.status(500).send(err);
+    }
 
-      //var dollarCentInWei = getDollarCentInWei();
-      //console.log("dollarCentInWei: ", dollarCentInWei);
-      ubiVault.createUBI(res);
 
   });
 
@@ -76,13 +79,12 @@
     let account = req.body.account
     let registered = false;
     try {
-      console.log(ubiVault.allCitizens[account])
+      console.log("Citizen %s registered: %s", account, (ubiVault.allCitizens[account] != null).toString());
       res.json({
         "registered": (ubiVault.allCitizens[account] != null)
       })
     }
     catch(err) {
-//      res.json({"error": "error in checking account" + err})
       res.status(500).send(err);
 
     }
@@ -94,7 +96,7 @@
     let dollarCentInWei = await helpers.getDollarCentInWei()
     let date = new Date()
     try {
-      let balance = Math.round((await helpers.getBalance(account)) / dollarCentInWei) 
+      let balance = Math.round((await helpers.getBalance(account)) / dollarCentInWei)
 
       let basicIncome = parseInt(await ubiVault.getAmountOfBasicIncome())
       if(ubiVault.allCitizens[account] != null)
@@ -164,11 +166,12 @@
 
 
   // schedule tasks to be run on the server
-  // cron.schedule("*/3 * * * *", function() {
-  //   console.log("---------------------");
-  //   console.log("Running Cron Job createUBI");
-  //   ubiVault.createUBI(false);
-  // });
+//  cron.schedule("*/3 * * * *", function() {
+  cron.schedule("0 1 * * 1", function() {  //every monday
+    console.log("---------------------");
+    console.log("Running Cron Job createUBI");
+    ubiVault.createUBI();
+  });
 
 
   app.listen(3000, () => console.log('App listening on port 3000!'))

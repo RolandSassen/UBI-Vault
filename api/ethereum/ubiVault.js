@@ -146,7 +146,7 @@ module.exports = {
   // key: when, value: {"adjustedDollarCentInWei": val, "totalamountOfBasicIncomeInWei": val, "amountOfCitizens": val, "amountOfBasicIncomeCanBeIncreased": val}
   allUBIs: {},
 
-  createUBI: async function (onlyOne) {
+  createUBI: async function () {
     let newDollarCentInWei = await helpers.getDollarCentInWei();
     let currentSmartContractDollarCentInWei = await module.exports.getDollarCentInWei()
     let upperBoundary = 1.05 * currentSmartContractDollarCentInWei
@@ -156,14 +156,12 @@ module.exports = {
     } else if(newDollarCentInWei < lowerBoundary) {
       newDollarCentInWei = Math.ceil(lowerBoundary)
     }
-    // let canCreateUBI = await contractInstance.methods.createUBI(newDollarCentInWei).call({from: fromAddress})
-    // console.log(canCreateUBI)
-    // if(canCreateUBI), but the call method of web3 does not work
-    if(true) {
+
+    contractInstance.methods.createUBI(newDollarCentInWei).estimateGas({from: fromAddress})
+    .then(async function(gasAmount){
+
       console.log("Calling Smart Contract: createUBI")
       try {
-        //TODO: when the dollar rate has changed by more than 5%, take the 5% boundary
-        //dollarCentInWei = 60332188286475 // for testing purposes
         let encoded = contractInstance.methods.createUBI(newDollarCentInWei).encodeABI()
 
         var tx = {
@@ -171,8 +169,7 @@ module.exports = {
           to : scAddress,
           from: fromAddress,
           data : encoded,
-  //        gasLimit: contractInstance.methods.createUBI(dollarCentInWei).estimateGas(),
-          gasLimit: web3js.utils.toHex(1200000),
+          gasLimit: web3js.utils.toHex(gasAmount+10000),
           gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
           value: 0,
           chainId: web3js.utils.toHex(deployedToNetwork)
@@ -190,100 +187,115 @@ module.exports = {
       catch (err) {
         console.error("Could not create UBI ", err)
       }
-    } else {
-      console.error("Could not create UBI")
-    }
+
+
+    })
+    .catch(function(error){
+        console.error("Could not create UBI: Not enough funds available (probably)");
+    });
   },
 
   claimUBI: async function(onlyOne) {
-    console.log("Calling Smart Contract: claimUBIOwner")
     let citizens =  Object.keys(module.exports.allCitizens)
-    // the call method of web3 does not work
-    // let validatedCitizens = []
-    // for(let index in citizens) {
-    //   if(await contractInstance.methods.claimUBIOwner([citizens[index], onlyOne]).call({from: fromAddress})) {
-    //     validatedCitizens.push(citizens[index])
-    //   }
-    // }
 
     let validatedCitizens = citizens
 
-    try {
-      let encoded = contractInstance.methods.claimUBIOwner(validatedCitizens, onlyOne).encodeABI()
-      var tx = {
-        nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
-        to : scAddress,
-        from: fromAddress,
-        data : encoded,
-        gasLimit: web3js.utils.toHex(1200000),
-        gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
-        value: 0,
-        chainId: web3js.utils.toHex(deployedToNetwork)
-      }
+    contractInstance.methods.claimUBIOwner(validatedCitizens, onlyOne).estimateGas({from: fromAddress})
+    .then(async function(gasAmount){
+      console.log("Calling Smart Contract: claimUBIOwner")
 
-      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
-      let signedRawTransaction = signedTransaction.rawTransaction
-
-      web3js.eth.sendSignedTransaction(signedRawTransaction)
-      .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
-      .once('confirmation', function(confirmationNumber, receipt){
-        if(confirmationNumber == 0) {
-          if(receipt.status == false) {
-            console.error("Could not claim UBI ", receipt)
-          } else {
-            console.log("Succeeded claimUBIOwner in block", receipt.blockNumber)
-//            res.json({"receipt": receipt})
+        try {
+          let encoded = contractInstance.methods.claimUBIOwner(validatedCitizens, onlyOne).encodeABI()
+          var tx = {
+            nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
+            to : scAddress,
+            from: fromAddress,
+            data : encoded,
+            gasLimit: web3js.utils.toHex(gasAmount+10000),
+            gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
+            value: 0,
+            chainId: web3js.utils.toHex(deployedToNetwork)
           }
-        }
-      })
-      .on('error', function(error)  {
-        console.error("Could not claim UBI ", error)
-      })
 
-    }
-    catch(err) {
-      console.error("Could not claim UBI ", err)
-    }
+          let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
+          let signedRawTransaction = signedTransaction.rawTransaction
+
+          web3js.eth.sendSignedTransaction(signedRawTransaction)
+          .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
+          .once('confirmation', function(confirmationNumber, receipt){
+            if(confirmationNumber == 0) {
+              if(receipt.status == false) {
+                console.error("Could not claim UBI ", receipt)
+              } else {
+                console.log("Succeeded claimUBIOwner in block", receipt.blockNumber)
+    //            res.json({"receipt": receipt})
+              }
+            }
+          })
+          .on('error', function(error)  {
+            console.error("Could not claim UBI ", error)
+          })
+
+        }
+        catch(err) {
+          console.error("Could not claim UBI ", err)
+        }
+
+      })
+      .catch(function(error){
+          console.error("Could not create UBI: Not enough funds available (probably)");
+      });
+
   },
 
   registerCitizenOwner: async function(citizen, res) {
     console.log("Calling Smart Contract: registerCitizenOwner")
-    try {
 
-      let encoded = contractInstance.methods.registerCitizenOwner(citizen).encodeABI()
-      var tx = {
-        nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
-        to : scAddress,
-        from: fromAddress,
-        data : encoded,
-        gasLimit: web3js.utils.toHex(1200000),
-        gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
-        value: 0,
-        chainId: web3js.utils.toHex(deployedToNetwork)
-      }
+    contractInstance.methods.registerCitizenOwner(citizen).estimateGas({from: fromAddress})
+    .then(async function(gasAmount){
+        try {
 
-      let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
-      let signedRawTransaction = signedTransaction.rawTransaction
-
-      web3js.eth.sendSignedTransaction(signedRawTransaction)
-      .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
-      .once('confirmation', function(confirmationNumber, receipt){
-        if(confirmationNumber == 0) {
-          if(receipt.status == false) {
-            res.json({"error": receipt})
-          } else {
-            console.log("Succeeded registerCitizenOwner in block", receipt.blockNumber)
-            res.json({"receipt": receipt})
+          let encoded = contractInstance.methods.registerCitizenOwner(citizen).encodeABI()
+          var tx = {
+            nonce: web3js.utils.toHex(await web3js.eth.getTransactionCount(fromAddress)),
+            to : scAddress,
+            from: fromAddress,
+            data : encoded,
+            gasLimit: web3js.utils.toHex(gasAmount+10000),
+            gasPrice: web3js.utils.toHex(await web3js.eth.getGasPrice()),
+            value: 0,
+            chainId: web3js.utils.toHex(deployedToNetwork)
           }
+
+          let signedTransaction = await web3js.eth.accounts.signTransaction(tx, privateKey)
+          let signedRawTransaction = signedTransaction.rawTransaction
+
+          web3js.eth.sendSignedTransaction(signedRawTransaction)
+          .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
+          .once('confirmation', function(confirmationNumber, receipt){
+            if(confirmationNumber == 0) {
+              if(receipt.status == false) {
+                res.json({"error": receipt})
+              } else {
+                console.log("Succeeded registerCitizenOwner in block", receipt.blockNumber)
+                res.json({"receipt": receipt})
+              }
+            }
+          })
+          .on('error', function(error)  {
+            res.json({"error": "error in sending transaction" + error})
+          })
         }
-      })
-      .on('error', function(error)  {
-        res.json({"error": "error in sending transaction" + error})
-      })
-    }
-    catch(err) {
-      res.json({"error": "error in sending transaction" + err})
-    }
+        catch(err) {
+          res.json({"error": "error in sending transaction" + err})
+        }
+
+    })
+    .catch(function(error){
+      console.log("Cannot register citizen: ", error)
+      res.json({"error": "error in sending transaction" + error})
+    });
+
   },
 
   getAmountOfBasicIncome: async function() {
