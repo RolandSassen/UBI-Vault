@@ -166,8 +166,8 @@
 
 
   // schedule tasks to be run on the server
-//  cron.schedule("*/3 * * * *", function() {
-  cron.schedule("0 1 * * 1", function() {  //every monday
+//  cron.schedule("*/3 * * * *", function() {   //use this for testing, createUBI will run every 3 minutes
+  cron.schedule("0 1 * * 1", function() {  //every monday at 01:00
     console.log("---------------------");
     console.log("Running Cron Job createUBI");
     ubiVault.createUBI();
