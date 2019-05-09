@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">UBI-Vault</string>
+
+    <!-- Overview -->
+    <string name="overview_sign_up">Sign up</string>
+    <string name="overview_info">Info</string>
+    <string name="overview_my_profile">My profile</string>
+    <string name="overview_my_income">My income</string>
+
+    <!-- Sign up -->
+    <string name="registration_title">Registration</string>
+    <string name="registration_first_name_hint">First name</string>
+    <string name="registration_last_name_hint">Last name</string>
+    <string name="registration_city_hint">City</string>
+    <string name="registration_country_hint">Country</string>
+    <string name="registration_email_hint">E-mail</string>
+    <string name="registration_ethereum_account_hint">Ethereum account</string>
+    <string name="registration_phone_number_hint">Phone number</string>
+    <string name="registration_button_sign_up">Sign up</string>
+    <string name="registration_successful_message">Congratulations!\n\nYou are now registered as a UBI-Vault citizen!</string>
+    <string name="registration_finish">Finish</string>
+    <string name="registration_error_message">We\'re sorry.\n\nUnfortunately we couldn\'t register you as a UBI-Vault citizen at the moment. Please try again later.</string>
+
+    <!-- SMS authentication -->
+    <string name="activity_sms_authentication_enter_code_hint">Enter code</string>
+    <string name="overview_title">Make your choice</string>
+    <string name="overview_register_title">Register as citizen</string>
+    <string name="overview_more_info_title">More information</string>
+    <string name="overview_show">Show</string>
+    <string name="registration_try_again">Try again</string>
+
+</resources>
