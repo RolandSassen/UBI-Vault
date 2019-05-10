@@ -115,7 +115,7 @@ The .env file should container a mnemonic and Infurakey (see Installation instru
 
 ### Install Truffle
 ```bash
-npm install -g truffle
+sudo npm install -g truffle
 ```
 
 ### Deploy smart contracts
