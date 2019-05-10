@@ -35,7 +35,7 @@ data class GetCitizenResponse(
 
 data class RegisterCitizenRequest(
     val account: String,
-    val phonenumber: String
+    val phoneNumber: String
 )
 
 data class RegisterCitizenResponse(
