@@ -57,7 +57,7 @@ MNEMONIC=<<enter your mnemonic>>
 INFURAKEY=<<enter your key from infura>>
 SECRETKEY=3955f06f-6708-492d-a4a5-97f70ed9e960
 ```
-
+Save file with: CTRL-X then Y and Enter
 
 
 #### Install PM2
