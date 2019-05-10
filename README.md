@@ -113,6 +113,11 @@ An Ethereum wallet (account 1) to receive the maintenance funds. **Keep the priv
 
 The .env file should container a mnemonic and Infurakey (see Installation instructions for UBI-Vault backend services). The first account generated from this mnemonic should have sufficient balance (in ether) to pay for the deployment transaction fee.
 
+### Install Truffle
+```bash
+npm install -g truffle
+```
+
 ### Deploy smart contracts
 First, go to the folder containing the files
 ```bash
