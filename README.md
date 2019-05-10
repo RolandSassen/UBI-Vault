@@ -46,7 +46,7 @@ npm install
 #### Create .env file
 Open a text editor to create a .env file:
 ```bash
-cd UBI-vault
+# cd UBI-vault (open folder if not already there)
 nano .env
 ```
 
