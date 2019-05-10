@@ -19,25 +19,31 @@ Transfer a small amount of ether (eg. 0.5 ETH) to this account for the transacti
 Follow this setup instruction to install NodeJS, the UBI-Vault back end service and all required packages.
 
 #### Install NodeJS
+The UBI-Vault backend is written in NodeJS. So first we have to install NodeJS:
 ```bash
 curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 sudo apt-get install -y nodejs
 sudo apt-get install build-essential
 ```
 
+#### Install git
+Next we need to install git to be able to access the github repository:
+```bash
+sudo apt-get install git
+```
+
+
 #### Install UBI-Vault backend service
 Now we create a folder for the service and install all dependencies using NPM. 
 ```bash
-mkdir ubi-vault
-cd ubi-vault
-<<paste all files>>
+git clone https://github.com/Axveco/UBI-vault.git
 npm install
 ```
 
 #### Create .env file
-Be sure you entered the ubi-vault folder.
 Open a text editor to create a .env file:
 ```bash
+cd UBI-vault
 nano .env
 ```
 
@@ -102,10 +108,12 @@ The UBI-Vault smart contract receives ether from sponsors and distributes it eve
 ### Prerequisites
 An Ethereum wallet (account 1) to receive the maintenance funds. **Keep the private key in a safe place!**
 
+The .env file should container a mnemonic and Infurakey (see Installation instructions for UBI-Vault backend services). The first account generated from this mnemonic should have sufficient balance (in ether) to pay for the deployment transaction fee.
+
 ### Deploy smart contracts
 First, go to the folder containing the files
 ```bash
-cd ubi-vault
+cd UBI-vault
 ```
 Run one of the deployment instructions depending on the platform you want to deploy to.
 
