@@ -9,7 +9,6 @@ import androidx.navigation.findNavController
 import com.thinsia.ubivault.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 class RegistrationViewModel : ViewModel() {
 
@@ -33,8 +32,11 @@ class RegistrationViewModel : ViewModel() {
             // Wait a couple of seconds to mimic the back-end call delay
             delay(2000)
             loadingIndicator.set(false)
-            if (Random.nextBoolean()) {
-                v.findNavController().navigate(R.id.action_registrationFragment_to_registrationSuccessFragment)
+            if (ethereumAccount.get() != null) {
+                ethereumAccount.get()?.let { account ->
+                    val navDirections = RegistrationFragmentDirections.actionRegistrationFragmentToRegistrationSuccessFragment(account)
+                    v.findNavController().navigate(navDirections)
+                }
             } else {
                 v.findNavController().navigate(R.id.action_registrationFragment_to_registrationErrorFragment)
             }

@@ -28,5 +28,6 @@
     <string name="overview_more_info_title">More information</string>
     <string name="overview_show">Show</string>
     <string name="registration_try_again">Try again</string>
+    <string name="overview_registered_citizen_title">Registered citizen</string>
 
 </resources>

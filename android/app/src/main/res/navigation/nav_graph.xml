@@ -20,7 +20,11 @@
                 android:id="@+id/action_registrationFragment_to_registrationSuccessFragment"
                 app:destination="@id/registrationSuccessFragment"
                 app:popUpTo="@+id/overviewFragment"
-                app:popUpToInclusive="false"/>
+                app:popUpToInclusive="false">
+            <argument
+                    android:name="account"
+                    app:argType="string"/>
+        </action>
         <action
                 android:id="@+id/action_registrationFragment_to_registrationErrorFragment"
                 app:destination="@id/registrationErrorFragment"
@@ -30,6 +34,9 @@
             android:id="@+id/registrationSuccessFragment"
             android:name="com.thinsia.ubivault.registration.RegistrationSuccessFragment"
             android:label="@string/registration_title">
+        <argument
+                android:name="account"
+                app:argType="string"/>
         <action
                 android:id="@+id/action_registrationSuccessFragment_to_overviewFragment"
                 app:destination="@id/overviewFragment"

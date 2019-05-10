@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import com.thinsia.ubivault.repository.PreferencesRepository
 
 class OverviewFragment : Fragment() {
 
@@ -26,9 +27,16 @@ class OverviewFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(OverviewViewModel::class.java)
         binding.viewModel = viewModel
+        binding.lifecycleOwner = this
 //        viewModel.getRegistration().observe(this, Observer<Registration>{ _ ->
 //            // update UI
 //        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val account = PreferencesRepository.getAccount()
+        viewModel.setAccount(account)
     }
 
 }

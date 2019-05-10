@@ -6,6 +6,6 @@ data class Registration(
     var city: String? = null,
     var country: String? = null,
     var email: String? = null,
-    var ethereumAccount: String? = null,
+    var ethereumAccount: Account? = null,
     var phoneNumber: String? = null
 )
