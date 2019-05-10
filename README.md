@@ -136,5 +136,8 @@ truffle migrate --reset --network main
 
 ```
 
+You need enough memory / swap space available, otherwise this error will occur:
+Error: spawn ENOMEM
+Check https://stackoverflow.com/questions/26193654/node-js-catch-enomem-error-thrown-after-spawn
 
 
