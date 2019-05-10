@@ -19,26 +19,25 @@
   app.use(express.json());
 
   app.post('/registerCitizen', async function(req,res) {
-    let body = req.body
-    let account = body.account
-    let phoneNumber = body.phonenumber
-
-    let secretKey = process.env.SECRETKEY
-
-    //check if phoneNumber is verified via Firebase Phone Auth
-    var options = {
-        method: 'POST',
-        uri: 'https://us-central1-axveco-421de.cloudfunctions.net/ubivault/checkPhonenumberVerification',
-        body: {
-            key: secretKey.toString(),
-            phoneNumber: phoneNumber.toString()
-        },
-        json: true // Automatically parses the JSON string in the response
-    };
-
     try {
-      let body = await rp(options)
-      if(body == 'verified') {
+      let body = req.body
+      let account = body.account
+      let phoneNumber = body.phoneNumber
+      let secretKey = process.env.SECRETKEY
+
+      //check if phoneNumber is verified via Firebase Phone Auth
+      var options = {
+          method: 'POST',
+          uri: 'https://us-central1-axveco-421de.cloudfunctions.net/ubivault/checkPhonenumberVerification',
+          body: {
+              key: secretKey.toString(),
+              phoneNumber: phoneNumber.toString()
+          },
+          json: true // Automatically parses the JSON string in the response
+      };
+
+      let resBody = await rp(options)
+      if(resBody == 'verified') {
 
         //if verified, register citizen in smart contract
         if(ubiVault.allCitizens[account] == null) {
@@ -68,7 +67,6 @@
         res.status(200).send();
     } catch (err) {
       console.log(err)
-      next(err)
       res.status(500).send(err);
     }
 
@@ -76,9 +74,9 @@
   });
 
   app.get('/checkCitizen', async function(req, res) {
-    let account = req.body.account
-    let registered = false;
     try {
+      let account = req.body.account
+      let registered = false;
       console.log("Citizen %s registered: %s", account, (ubiVault.allCitizens[account] != null).toString());
       res.json({
         "registered": (ubiVault.allCitizens[account] != null)
@@ -92,21 +90,21 @@
 
 
   app.get('/getCitizen', async function(req, res) {
-    let account = req.body.account
-    let dollarCentInWei = await helpers.getDollarCentInWei()
-    let date = new Date()
     try {
-      let balance = Math.round((await helpers.getBalance(account)) / dollarCentInWei)
+      let account = req.body.account
+      let dollarCentInWei = await helpers.getDollarCentInWei()
+      let date = new Date()
+      console.log("getCitizen started", new Date(Date.now()))
 
-      let basicIncome = parseInt(await ubiVault.getAmountOfBasicIncome())
       if(ubiVault.allCitizens[account] != null)
       {
+        let basicIncome = parseInt(await ubiVault.getAmountOfBasicIncome())
+        let balance = Math.round((await helpers.getBalance(account)) / dollarCentInWei)
         let whenRegistered = parseInt(ubiVault.allCitizens[account].timeRegistered)
         let lastUBI = ubiVault.getLastUBI()
         let rightFromPaymentCycle = parseInt(await ubiVault.getRightFromPaymentsCycle(account))
         let minimumPeriod = parseInt(await ubiVault.getMinimumPeriod())
         let UBIAtPaymentsCyle = ubiVault.getUBIAtCycle(rightFromPaymentCycle-1)
-
         let lastClaimed = parseInt(lastUBI.whenPaid) > whenRegistered ? parseInt(UBIAtPaymentsCyle.whenPaid) : null
         let expectedPayment = parseInt(lastUBI.whenPaid) + minimumPeriod
 
@@ -121,11 +119,13 @@
         })
       }
       else {
+        console.log('Account not registered as citizen')
         res.status(403).send('Account not registered as citizen');
       }
     }
     catch(err) {
       console.log(err);
+
 
       res.status(500).send(err);
 
@@ -167,11 +167,17 @@
 
   // schedule tasks to be run on the server
 //  cron.schedule("*/3 * * * *", function() {   //use this for testing, createUBI will run every 3 minutes
-  cron.schedule("0 1 * * 1", function() {  //every monday at 01:00
-    console.log("---------------------");
-    console.log("Running Cron Job createUBI");
-    ubiVault.createUBI();
-  });
+  // cron.schedule("0 1 * * 1", function() {  //every monday at 01:00
+  //   console.log("---------------------");
+  //   console.log("Running Cron Job createUBI");
+  //   ubiVault.createUBI();
+  // });
 
+  cron.schedule("*/30 * * * * *", function() {  //every 30 seconds
+    console.log("---------------------");
+    console.log("Keep Alive");
+    ubiVault.getDollarCentInWei();
+    helpers.getBalance("0x0000000000000000000000000000000000000000");
+  });
 
   app.listen(3000, () => console.log('App listening on port 3000!'))

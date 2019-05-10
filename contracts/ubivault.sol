@@ -85,7 +85,7 @@ contract UBIVault is Ownable, PausableDestroyable {
      * sets the ether promised during this cycle as a new value in the paymentsCycle array (which is also set in the constructor)
     */
     function createUBI(uint256 adjustedDollarCentInWei) public onlyOwner {
-        uint256 adjustedDollarInWei = adjustedDollarCentInWei.mul(100);
+//        uint256 adjustedDollarInWei = adjustedDollarCentInWei.mul(100);
         uint256 totalamountOfBasicIncomeInWei = adjustedDollarCentInWei.mul(amountOfBasicIncome).mul(amountOfCitizens);
         // We only allow a fluctuation of 5% per UBI creation
 //        require(adjustedDollarInWei >= dollarCentInWei.mul(95) && adjustedDollarInWei <= dollarCentInWei.mul(105), "The exchange rate can only fluctuate +- 5% per createUBI call");

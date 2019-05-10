@@ -4,7 +4,20 @@ const web3 = require('web3')
 let infurakey = process.env.INFURAKEY
 
 //Infura HttpProvider Endpoint
-var web3js = new web3(new web3.providers.HttpProvider("https://ropsten.infura.io/v3/" + infurakey));
+const getProvider = () => {
+  const provider = new web3.providers.WebsocketProvider("wss://ropsten.infura.io/ws/v3/"+infurakey)
+  provider.on('connect', () => console.log('WS Connected'))
+  provider.on('socket_error', () => console.log('WS socket_error'))
+  provider.on('ready', e => { console.log('WS ready') })
+  provider.on('socket_ready', e => { console.log('WS socket_ready') })
+  provider.on('socket_error', e => { console.error('WS socket_error', e) })
+  provider.on('error', e => { console.error('WS Error', e) })
+  provider.on('close', e => { console.error('WS Close', e) })
+  provider.on('end', e => { console.error('WS End', e)  })
+
+  return provider
+}
+var web3js = new web3(getProvider())
 
 module.exports = {
   getDollarCentInWei: async function() {

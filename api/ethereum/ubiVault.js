@@ -9,7 +9,22 @@ let infurakey = process.env.INFURAKEY
 let mnemonic = process.env.MNEMONIC
 
 //Infura HttpProvider Endpoint
-var web3js = new web3(new web3.providers.WebsocketProvider("wss://ropsten.infura.io/ws/v3/"+infurakey));
+const getProvider = () => {
+  const provider = new web3.providers.WebsocketProvider("wss://ropsten.infura.io/ws/v3/"+infurakey)
+  provider.on('connect', () => console.log('WS Connected'))
+  provider.on('socket_error', () => console.log('WS socket_error'))
+  provider.on('ready', e => { console.log('WS ready') })
+  provider.on('socket_ready', e => { console.log('WS socket_ready') })
+  provider.on('socket_error', e => { console.error('WS socket_error', e) })
+  provider.on('error', e => { console.error('WS Error', e) })
+  provider.on('close', e => { console.error('WS Close', e) })
+  provider.on('end', e => { console.error('WS End', e)  })
+
+  return provider
+}
+var web3js = new web3(getProvider())
+
+//var web3js = new web3(new web3.providers.WebsocketProvider("wss://ropsten.infura.io/ws/v3/"+infurakey));
 
 // wallet provider
 var provider = new HDWalletProvider(mnemonic, "http://localhost:8545");
@@ -44,11 +59,11 @@ async function populateAllcitizens(_contractInstance) {
       break
       case "LogUBICreated":
         let whenCreated = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
-        let adjustedDollarCentInWei = myEvent.returnValues.adjustedDollarCentInWei
-        let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei
-        let amountOfCitizens = myEvent.returnValues.amountOfCitizens
-        let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased
-        let paymentsCycle = myEvent.returnValues.paymentsCycle
+        let adjustedDollarCentInWei = myEvent.returnValues.adjustedDollarCentInWei.toString(10)
+        let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei.toString(10)
+        let amountOfCitizens = myEvent.returnValues.amountOfCitizens.toString(10)
+        let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased.toString(10)
+        let paymentsCycle = myEvent.returnValues.paymentsCycle.toString(10)
         module.exports.allUBIs[whenCreated] = {
           "paymentsCycle": paymentsCycle,
           "adjustedDollarInWei": adjustedDollarCentInWei,
@@ -148,14 +163,14 @@ module.exports = {
 
   createUBI: async function () {
     let newDollarCentInWei = await helpers.getDollarCentInWei();
-    let currentSmartContractDollarCentInWei = await module.exports.getDollarCentInWei()
-    let upperBoundary = 1.05 * currentSmartContractDollarCentInWei
-    let lowerBoundary = 0.95 * currentSmartContractDollarCentInWei
-    if(newDollarCentInWei > upperBoundary) {
-      newDollarCentInWei = Math.floor(upperBoundary)
-    } else if(newDollarCentInWei < lowerBoundary) {
-      newDollarCentInWei = Math.ceil(lowerBoundary)
-    }
+    // let currentSmartContractDollarCentInWei = await module.exports.getDollarCentInWei()
+    // let upperBoundary = 1.05 * currentSmartContractDollarCentInWei
+    // let lowerBoundary = 0.95 * currentSmartContractDollarCentInWei
+    // if(newDollarCentInWei > upperBoundary) {
+    //   newDollarCentInWei = Math.floor(upperBoundary)
+    // } else if(newDollarCentInWei < lowerBoundary) {
+    //   newDollarCentInWei = Math.ceil(lowerBoundary)
+    // }
 
     contractInstance.methods.createUBI(newDollarCentInWei).estimateGas({from: fromAddress})
     .then(async function(gasAmount){
@@ -187,7 +202,6 @@ module.exports = {
       catch (err) {
         console.error("Could not create UBI ", err)
       }
-
 
     })
     .catch(function(error){
@@ -223,7 +237,7 @@ module.exports = {
           web3js.eth.sendSignedTransaction(signedRawTransaction)
           .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
           .once('confirmation', function(confirmationNumber, receipt){
-            if(confirmationNumber == 0) {
+            if(confirmationNumber == 1) {
               if(receipt.status == false) {
                 console.error("Could not claim UBI ", receipt)
               } else {
@@ -273,9 +287,10 @@ module.exports = {
           web3js.eth.sendSignedTransaction(signedRawTransaction)
           .once('transactionHash', function(hash) {console.log("Hash: ", hash)})
           .once('confirmation', function(confirmationNumber, receipt){
-            if(confirmationNumber == 0) {
+            if(confirmationNumber == 1) {
               if(receipt.status == false) {
                 res.json({"error": receipt})
+                res.status(200).send()
               } else {
                 console.log("Succeeded registerCitizenOwner in block", receipt.blockNumber)
                 res.json({"receipt": receipt})
@@ -299,7 +314,7 @@ module.exports = {
   },
 
   getAmountOfBasicIncome: async function() {
-    return contractInstance.methods.amountOfBasicIncome().call()
+    return contractInstance.methods.amountOfBasicIncome().call();
   },
 
   getAvailableEther: async function() {
