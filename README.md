@@ -1,5 +1,5 @@
 # UBI-vault
-A Universal Basic Income distribution system
+A Universal Basic Income distribution system!
 
 
 ## Installation instructions for UBI-Vault backend services
@@ -13,6 +13,7 @@ A (virtual) server with a Linux distribution installed, like Ubuntu 16.04 or Cen
 A deployed UBI-vault smart contract on an Ethereum platform (testnet or mainnet)
 
 A (secret!) mnemonic (list of words) is needed to generate the Ethereum wallet (account 2) paying for all transaction fees.
+Transfer a small amount of ether (eg. 0.5 ETH) to this account for the transaction fees. This account should never have  insufficient balance for paying fees, so transfer a small amount of ether once in a while.
 
 ### Installation
 Follow this setup instruction to install NodeJS, the UBI-Vault back end service and all required packages.
@@ -32,6 +33,23 @@ cd ubi-vault
 <<paste all files>>
 npm install
 ```
+
+#### Create .env file
+Be sure you entered the ubi-vault folder.
+Open a text editor to create a .env file:
+```bash
+nano .env
+```
+
+The content of your .env file should be:
+
+```bash
+MNEMONIC=<<enter your mnemonic>>
+INFURAKEY=<<enter your key from infura>>
+SECRETKEY=3955f06f-6708-492d-a4a5-97f70ed9e960
+```
+
+
 
 #### Install PM2
 Now we will install PM2, which is a process manager for Node.js applications. PM2 provides an easy way to manage and daemonize applications (run them in the background as a service).
@@ -62,7 +80,7 @@ Output
 sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u sammy --hp /home/sammy
 ```
 
-Run the command that was generated (similar to the output above, but with your username instead of sammy) to set PM2 up to start on boot (use the command from your own output):
+Run the command that was generated (similar to the output above, but with your username instead of sammy) to set PM2 up to start on boot (**use the command from your own output**):
 
 ```bash
 sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u sammy --hp /home/sammy
@@ -79,10 +97,26 @@ pm2 list
 ### Introduction
 The UBI-Vault smart contract receives ether from sponsors and distributes it every week to all registered citizens. From all received funds, 5% is transferred to account 1 as maintenance fee. 
 
+**Be careful with deploying the smart contract (again). It will influence the backend services immediately!**
+
 ### Prerequisites
+An Ethereum wallet (account 1) to receive the maintenance funds. **Keep the private key in a safe place!**
 
-An Ethereum wallet (account 1) to receive the maintenance funds.
+### Deploy smart contracts
+First, go to the folder containing the files
+```bash
+cd ubi-vault
+```
+Run one of the deployment instructions depending on the platform you want to deploy to.
 
+```bash
+--testnet:
+truffle migrate --reset --network ropsten
+
+--mainnet:
+truffle migrate --reset --network main
+
+```
 
 
 
