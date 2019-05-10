@@ -28,7 +28,7 @@ sudo apt-get install build-essential
 ```
 
 #### Install git
-Next we need to install git to be able to access the github repository:
+Next we need to install git to be able to access the github repository (will skip if already installed):
 ```bash
 sudo apt-get install git
 ```
@@ -38,6 +38,8 @@ sudo apt-get install git
 Now we create a folder for the service and install all dependencies using NPM. 
 ```bash
 git clone https://github.com/Axveco/UBI-vault.git
+# enter your credentials for github
+cd UBI-vault
 npm install
 ```
 
