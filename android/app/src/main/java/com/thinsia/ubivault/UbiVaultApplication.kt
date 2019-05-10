@@ -8,9 +8,6 @@ class UbiVaultApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         PreferencesRepository.init(this)
-        if (BuildConfig.DEBUG) {
-            PreferencesRepository.removeAccount()
-        }
     }
 
 }

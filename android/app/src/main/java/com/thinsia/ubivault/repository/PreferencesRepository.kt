@@ -24,9 +24,4 @@ object PreferencesRepository {
         sharedPrefs.edit { putString(KEY_ETHEREUM_ACCOUNT, account.hash) }
     }
 
-    // For debug purposes only
-    fun removeAccount() {
-        sharedPrefs.edit { remove(KEY_ETHEREUM_ACCOUNT) }
-    }
-
 }
