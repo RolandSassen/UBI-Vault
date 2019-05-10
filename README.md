@@ -23,7 +23,8 @@ The UBI-Vault backend is written in NodeJS. So first we have to install NodeJS:
 ```bash
 curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 sudo apt-get install -y nodejs
-sudo apt-get install build-essential
+sudo apt-get install build-essential  
+# enter Yes when requested
 ```
 
 #### Install git
