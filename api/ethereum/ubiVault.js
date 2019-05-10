@@ -111,11 +111,11 @@ function watchForNewEvents(_contractInstance) {
       break
       case "LogUBICreated":
         let whenCreated = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
-        let adjustedDollarCentInWei = myEvent.returnValues.adjustedDollarCentInWei
-        let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei
-        let amountOfCitizens = myEvent.returnValues.amountOfCitizens
-        let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased
-        let paymentsCycle = myEvent.returnValues.paymentsCycle
+        let adjustedDollarCentInWei = myEvent.returnValues.adjustedDollarCentInWei.toString(10)
+        let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei.toString(10)
+        let amountOfCitizens = myEvent.returnValues.amountOfCitizens.toString(10)
+        let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased.toString(10)
+        let paymentsCycle = myEvent.returnValues.paymentsCycle.toString(10)
         module.exports.allUBIs[whenCreated] = {
           "paymentsCycle": paymentsCycle,
           "adjustedDollarCentInWei": adjustedDollarCentInWei,
