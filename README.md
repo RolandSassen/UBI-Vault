@@ -115,6 +115,8 @@ The .env file should container a mnemonic and Infurakey (see Installation instru
 
 ### Install Truffle
 ```bash
+# replace <username> with your username
+sudo chown -R <username> /usr/lib/node_modules
 sudo npm install -g truffle
 ```
 
