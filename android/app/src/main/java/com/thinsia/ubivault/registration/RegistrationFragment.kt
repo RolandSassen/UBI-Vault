@@ -9,11 +9,9 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.thinsia.ubivault.R
-import com.thinsia.ubivault.util.action
 import com.thinsia.ubivault.util.snack
 
 
@@ -58,6 +56,10 @@ class RegistrationFragment : Fragment(), RegistrationFormValidator {
         return binding.root
     }
 
+    override fun hideKeyboard() {
+        hideKeyboardIfNecessary(true, binding.anchor)
+    }
+
     override fun formIsValid(): Boolean {
         var allValid = validateEmptyness(binding.firstNameField, binding.firstNameLayout)
         allValid = validateEmptyness(binding.lastNameField, binding.lastNameLayout) && allValid
@@ -70,9 +72,7 @@ class RegistrationFragment : Fragment(), RegistrationFormValidator {
     }
 
     override fun showFormInvalidMessage() {
-        binding.container.snack(R.string.registration_form_invalid_message, Snackbar.LENGTH_INDEFINITE) {
-            action("OK") { }
-        }
+        binding.container.snack(R.string.registration_info)
     }
 
     private fun hideKeyboardIfNecessary(hasFocus: Boolean, v: View) {

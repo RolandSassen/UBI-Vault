@@ -20,8 +20,7 @@
     <string name="registration_successful_message">Congratulations!\n\nYou are now registered as a UBI-Vault citizen!</string>
     <string name="registration_finish">Finish</string>
     <string name="registration_error_message">We\'re sorry.\n\nUnfortunately we couldn\'t register you as a UBI-Vault citizen at the moment. Please try again later.</string>
-    <string name="registration_info">Please fill in all the fields</string>
-    <string name="registration_form_invalid_message">Please correct the above errors first</string>
+    <string name="registration_info">Please fill in all the fields correctly</string>
 
     <!-- SMS authentication -->
     <string name="activity_sms_authentication_enter_code_hint">Enter code</string>

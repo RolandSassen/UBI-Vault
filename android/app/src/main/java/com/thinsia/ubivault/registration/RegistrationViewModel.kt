@@ -32,6 +32,7 @@ class RegistrationViewModel : ViewModel() {
     var validator: RegistrationFormValidator? = null
 
     private fun submitRegistration(v: View) {
+        validator?.hideKeyboard()
         if (validator?.formIsValid() != true) {
             validator?.showFormInvalidMessage()
         } else {

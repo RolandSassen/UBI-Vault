@@ -4,5 +4,6 @@ interface RegistrationFormValidator {
 
     fun formIsValid(): Boolean
     fun showFormInvalidMessage()
+    fun hideKeyboard()
 
 }
