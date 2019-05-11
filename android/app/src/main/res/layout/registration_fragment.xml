@@ -191,12 +191,32 @@
                 app:layout_anchor="@id/anchor"
                 app:layout_anchorGravity="bottom|right|end"/>
 
-        <ProgressBar
+        <LinearLayout
                 app:show="@{viewModel.loadingIndicator}"
-                android:indeterminate="true"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"/>
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:gravity="center">
+
+            <ProgressBar
+                    android:indeterminate="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+
+            <TextView
+                    app:show="@{viewModel.loadingIndicator}"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:gravity="center"
+                    android:paddingLeft="32dp"
+                    android:paddingRight="32dp"
+                    android:textSize="24sp"
+                    android:text="@string/please_wait_message"/>
+
+        </LinearLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
