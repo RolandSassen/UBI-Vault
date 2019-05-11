@@ -29,37 +29,43 @@ class RegistrationViewModel : ViewModel() {
     val ethereumAccount = ObservableField<String>()
     val phoneNumber = ObservableField<String>()
 
+    var validator: RegistrationFormValidator? = null
+
     private fun submitRegistration(v: View) {
-        loadingIndicator.set(true)
-        viewModelScope.launch {
-            val ethereumAccountHash = ethereumAccount.get()
-            val phoneNumber = phoneNumber.get()
-            var error = false
-            if (ethereumAccountHash != null && phoneNumber != null) {
-                val registerCitizenResponse= try {
-                    CitizensRemoteDataStore.registerCitizenAsync(ethereumAccountHash, phoneNumber).await()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error registering citizen", e)
+        if (validator?.formIsValid() != true) {
+            validator?.showFormInvalidMessage()
+        } else {
+            loadingIndicator.set(true)
+            viewModelScope.launch {
+                val ethereumAccountHash = ethereumAccount.get()
+                val phoneNumber = phoneNumber.get()
+                var error = false
+                if (ethereumAccountHash != null && phoneNumber != null) {
+                    val registerCitizenResponse= try {
+                        CitizensRemoteDataStore.registerCitizenAsync(ethereumAccountHash, phoneNumber).await()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error registering citizen", e)
+                        error = true
+                        null
+                    }
+                    if (!error && registerCitizenResponse?.error != null) {
+                        error = true
+                    }
+                    if (!error) {
+                        val navDirections =
+                            RegistrationFragmentDirections.actionRegistrationFragmentToRegistrationSuccessFragment(
+                                ethereumAccountHash
+                            )
+                        loadingIndicator.set(false)
+                        v.findNavController().navigate(navDirections)
+                    }
+                } else {
                     error = true
-                    null
                 }
-                if (!error && registerCitizenResponse?.error != null) {
-                    error = true
-                }
-                if (!error) {
-                    val navDirections =
-                        RegistrationFragmentDirections.actionRegistrationFragmentToRegistrationSuccessFragment(
-                            ethereumAccountHash
-                        )
+                if (error) {
                     loadingIndicator.set(false)
-                    v.findNavController().navigate(navDirections)
+                    v.findNavController().navigate(R.id.action_registrationFragment_to_registrationErrorFragment)
                 }
-            } else {
-                error = true
-            }
-            if (error) {
-                loadingIndicator.set(false)
-                v.findNavController().navigate(R.id.action_registrationFragment_to_registrationErrorFragment)
             }
         }
     }
