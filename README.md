@@ -118,6 +118,7 @@ The .env file should container a mnemonic and Infurakey (see Installation instru
 # replace <username> with your username
 sudo chown -R <username> /usr/lib/node_modules
 sudo npm install -g truffle
+# somtimes you have to execute these commands twice
 ```
 
 ### Deploy smart contracts
