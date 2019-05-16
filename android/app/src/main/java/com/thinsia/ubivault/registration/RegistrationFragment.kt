@@ -254,9 +254,12 @@ class RegistrationFragment : Fragment() {
         })
 
         viewModel.validateForm.observe(this, EventObserver {
-            if (formIsValid()) {
+            if (formIsValid() && FirebaseAuth.getInstance().currentUser == null) {
                 viewModel.onLoadingStarted()
                 validatePhoneNumberWithSms()
+            } else if (formIsValid() && FirebaseAuth.getInstance().currentUser != null) {
+                // We've already validated our phone number via SMS so we can register the citizen immediately
+                viewModel.onRegisterCitizen()
             } else {
                 showFormInvalidMessage()
             }

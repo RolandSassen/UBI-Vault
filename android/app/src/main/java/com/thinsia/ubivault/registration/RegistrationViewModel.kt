@@ -62,7 +62,7 @@ class RegistrationViewModel : ViewModel() {
         _validateVerificationCode.value = Event(Unit)
     }
 
-    private fun registerCitizen() {
+    fun onRegisterCitizen() {
         loading.set(true)
         viewModelScope.launch {
             val ethereumAccountHash = ethereumAccount.get()
@@ -108,7 +108,7 @@ class RegistrationViewModel : ViewModel() {
     fun onFirebaseSignInSuccess() {
         verificationId.set(null)
         verificationCode.set(null)
-        registerCitizen()
+        onRegisterCitizen()
     }
 
     fun onFirebaseSignInFailure() {
