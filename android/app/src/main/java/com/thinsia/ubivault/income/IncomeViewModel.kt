@@ -43,7 +43,7 @@ class IncomeViewModel : ViewModel() {
 }
 
 private fun Long?.toDisplayDate(): String? = if (this != null) {
-    SimpleDateFormat("dddd d MMMM YYYY HH:mm", Locale.getDefault()).format(Date(this))
+    SimpleDateFormat("EEEE d MMMM yyyy HH:mm", Locale.getDefault()).format(Date(this))
 } else {
     "(Unknown)"
 }
@@ -54,7 +54,7 @@ private fun Int?.toAmount(): String? {
     } else {
         val amount = this.toDouble() / 100.0f
         val amountFormatted = amount.format(2)
-        "\\$$amountFormatted"
+        "\$$amountFormatted"
     }
 }
 
