@@ -35,6 +35,15 @@
     <string name="registration_button_verify_code">Verify</string>
     <string name="registration_verification_info">Please enter the verification code sent to your phone number</string>
     <string name="registration_verification_code_hint">Verification code</string>
-    <string name="profile_info">My profile</string>
+
+    <!-- My Profile -->
+    <string name="my_profile_title">My Profile</string>
+
+    <!-- My Income -->
+    <string name="my_income_title">My Income</string>
+    <string name="income_expected_payment_at_time">Expected payment at time</string>
+    <string name="income_balance_label">Balance</string>
+    <string name="income_basic_income">Basic income</string>
+    <string name="income_last_claimed">Last claimed</string>
 
 </resources>

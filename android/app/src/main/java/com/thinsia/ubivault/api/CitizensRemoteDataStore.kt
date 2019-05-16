@@ -36,13 +36,13 @@ object CitizensRemoteDataStore {
 
     suspend fun getCitizenAsync(account: String): Deferred<GetCitizenResponse> {
         return withContext(Dispatchers.IO) {
-            citizensService.getCitizenAsync(AccountRequest(account))
+            citizensService.getCitizenAsync(account)
         }
     }
 
     suspend fun checkCitizenAsync(account: String): Deferred<CheckCitizenResponse> {
         return withContext(Dispatchers.IO) {
-            citizensService.checkCitizenAsync(AccountRequest(account))
+            citizensService.checkCitizenAsync(account)
         }
     }
 

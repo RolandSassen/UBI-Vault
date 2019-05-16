@@ -20,7 +20,7 @@ class OverviewViewModel : ViewModel() {
     }
 
     val myIncomeClickListener = View.OnClickListener { view ->
-//        view.findNavController().navigate(R.id.action_overviewFragment_to_myIncomeFragment)
+        view.findNavController().navigate(R.id.action_overviewFragment_to_incomeFragment)
     }
 
     val moreInfoClickListener = View.OnClickListener { view ->

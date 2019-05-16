@@ -4,23 +4,20 @@ import kotlinx.coroutines.Deferred
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface CitizensService {
 
     @GET("/checkCitizen")
-    fun checkCitizenAsync(@Body accountRequest: AccountRequest): Deferred<CheckCitizenResponse>
+    fun checkCitizenAsync(@Query("account") account: String): Deferred<CheckCitizenResponse>
 
     @GET("/getCitizen")
-    fun getCitizenAsync(@Body accountRequest: AccountRequest): Deferred<GetCitizenResponse>
+    fun getCitizenAsync(@Query("account") account: String): Deferred<GetCitizenResponse>
 
     @POST("/registerCitizen")
     fun registerCitizenAsync(@Body registerCitizenRequest: RegisterCitizenRequest): Deferred<RegisterCitizenResponse>
 
 }
-
-data class AccountRequest(
-    val account: String
-)
 
 data class CheckCitizenResponse(
     val registered: Boolean

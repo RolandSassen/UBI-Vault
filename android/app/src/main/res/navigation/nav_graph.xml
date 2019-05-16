@@ -14,6 +14,9 @@
         <action
                 android:id="@+id/action_overviewFragment_to_profileFragment"
                 app:destination="@id/profileFragment"/>
+        <action
+                android:id="@+id/action_overviewFragment_to_incomeFragment"
+                app:destination="@id/incomeFragment"/>
     </fragment>
     <fragment
             android:id="@+id/registrationFragment"
@@ -59,5 +62,9 @@
     <fragment
             android:id="@+id/profileFragment"
             android:name="com.thinsia.ubivault.profile.ProfileFragment"
-            android:label="@string/profile_info"/>
+            android:label="@string/my_profile_title"/>
+    <fragment
+            android:id="@+id/incomeFragment"
+            android:name="com.thinsia.ubivault.profile.IncomeFragment"
+            android:label="@string/my_income_title"/>
 </navigation>
