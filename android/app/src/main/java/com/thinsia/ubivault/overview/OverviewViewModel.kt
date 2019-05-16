@@ -16,7 +16,7 @@ class OverviewViewModel : ViewModel() {
     }
 
     val myProfileClickListener = View.OnClickListener { view ->
-//        view.findNavController().navigate(R.id.action_overviewFragment_to_myProfileFragment)
+        view.findNavController().navigate(R.id.action_overviewFragment_to_profileFragment)
     }
 
     val myIncomeClickListener = View.OnClickListener { view ->

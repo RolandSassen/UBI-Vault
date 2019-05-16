@@ -35,5 +35,6 @@
     <string name="registration_button_verify_code">Verify</string>
     <string name="registration_verification_info">Please enter the verification code sent to your phone number</string>
     <string name="registration_verification_code_hint">Verification code</string>
+    <string name="profile_info">My profile</string>
 
 </resources>

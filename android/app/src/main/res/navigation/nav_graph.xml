@@ -11,6 +11,9 @@
         <action
                 android:id="@+id/action_overviewFragment_to_registrationFragment"
                 app:destination="@id/registrationFragment"/>
+        <action
+                android:id="@+id/action_overviewFragment_to_profileFragment"
+                app:destination="@id/profileFragment"/>
     </fragment>
     <fragment
             android:id="@+id/registrationFragment"
@@ -53,4 +56,8 @@
                 app:popUpToInclusive="true"
                 app:popUpTo="@+id/overviewFragment"/>
     </fragment>
+    <fragment
+            android:id="@+id/profileFragment"
+            android:name="com.thinsia.ubivault.profile.ProfileFragment"
+            android:label="@string/profile_info"/>
 </navigation>

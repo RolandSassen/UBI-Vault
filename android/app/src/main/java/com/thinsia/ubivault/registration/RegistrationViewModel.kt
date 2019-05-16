@@ -56,14 +56,14 @@ class RegistrationViewModel : ViewModel() {
     val phoneNumber = ObservableField<String>()
 
     init {
-        PreferencesRepository.getProfile()?.let { registration ->
-            firstName.set(registration.firstName)
-            lastName.set(registration.lastName)
-            city.set(registration.lastName)
-            country.set(registration.country)
-            email.set(registration.email)
-            ethereumAccount.set(registration.ethereumAccount?.hash)
-            phoneNumber.set(registration.phoneNumber)
+        PreferencesRepository.getProfile()?.let { profile ->
+            firstName.set(profile.firstName)
+            lastName.set(profile.lastName)
+            city.set(profile.lastName)
+            country.set(profile.country)
+            email.set(profile.email)
+            ethereumAccount.set(profile.ethereumAccount?.hash)
+            phoneNumber.set(profile.phoneNumber)
         }
     }
 
