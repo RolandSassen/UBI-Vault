@@ -1,7 +1,9 @@
 package com.thinsia.ubivault.registration
 
+import android.app.Activity
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
@@ -9,13 +11,22 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.FirebaseException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthProvider
 import com.thinsia.ubivault.R
+import com.thinsia.ubivault.util.EventObserver
 import com.thinsia.ubivault.util.snack
+import java.util.concurrent.TimeUnit
 
 
-class RegistrationFragment : Fragment(), RegistrationFormValidator {
+class RegistrationFragment : Fragment() {
+
     companion object {
         val ETH_ACCOUNT_PATTERN = "^0x[a-fA-F0-9]{40}$".toPattern()
         fun newInstance() = RegistrationFragment()
@@ -56,11 +67,11 @@ class RegistrationFragment : Fragment(), RegistrationFormValidator {
         return binding.root
     }
 
-    override fun hideKeyboard() {
+    private fun hideKeyboard() {
         hideKeyboardIfNecessary(true, binding.anchor)
     }
 
-    override fun formIsValid(): Boolean {
+    private fun formIsValid(): Boolean {
         var allValid = validateEmptyness(binding.firstNameField, binding.firstNameLayout)
         allValid = validateEmptyness(binding.lastNameField, binding.lastNameLayout) && allValid
         allValid = validateEmptyness(binding.cityField, binding.cityLayout) && allValid
@@ -71,7 +82,11 @@ class RegistrationFragment : Fragment(), RegistrationFormValidator {
         return allValid
     }
 
-    override fun showFormInvalidMessage() {
+    private fun verificationCodeIsValid(): Boolean {
+        return validateVerificationCode()
+    }
+
+    private fun showFormInvalidMessage() {
         binding.container.snack(R.string.registration_info)
     }
 
@@ -143,11 +158,122 @@ class RegistrationFragment : Fragment(), RegistrationFormValidator {
         return false
     }
 
+    private fun validateVerificationCode(): Boolean {
+        val text = binding.verificationCodeField.text
+        if (text?.isEmpty() == true) {
+            binding.verificationCodeLayout.isErrorEnabled = true
+            binding.verificationCodeLayout.error = "Verification code field cannot be empty"
+        } else if (!"^[0-9]{6}$".toPattern().matcher(text?.toString()).matches()) {
+            binding.verificationCodeLayout.isErrorEnabled = true
+            binding.verificationCodeLayout.error = "Not a valid verification code"
+        } else {
+            binding.verificationCodeLayout.error = null
+            binding.verificationCodeLayout.isErrorEnabled = false
+            return true
+        }
+        return false
+    }
+
+    private fun validatePhoneNumberWithSms() {
+        PhoneAuthProvider.getInstance().verifyPhoneNumber(
+            binding.phoneNumberField.text.toString(),      // Phone number to verify
+            60,                                            // Timeout duration
+            TimeUnit.SECONDS,                              // Unit of timeout
+            activity as Activity,                          // Activity (for callback binding)
+            object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                override fun onVerificationCompleted(credential: PhoneAuthCredential?) {
+                    // This callback will be invoked in two situations:
+                    // 1 - Instant verification. In some cases the phone number can be instantly
+                    //     verified without needing to send or enter a verification code.
+                    // 2 - Auto-retrieval. On some devices Google Play services can automatically
+                    //     detect the incoming verification SMS and perform verification without
+                    //     user action.
+                    if (credential != null) {
+                        Log.d(TAG, "onVerificationCompleted:$credential")
+                        signInWithPhoneAuthCredential(credential)
+                    }
+                }
+
+                override fun onVerificationFailed(e: FirebaseException?) {
+                    // This callback is invoked in an invalid request for verification is made,
+                    // for instance if the the phone number format is not valid.
+                    Log.w(TAG, "onVerificationFailed", e)
+                    viewModel.onVerificationFailed()
+                }
+
+                override fun onCodeSent(verificationId: String?, token: PhoneAuthProvider.ForceResendingToken?) {
+                    // The SMS verification code has been sent to the provided phone number, we
+                    // now need to ask the user to enter the code and then construct a credential
+                    // by combining the code with a verification ID.
+                    Log.d(TAG, "onCodeSent:$verificationId")
+                    viewModel.onCodeSent(verificationId)
+                }
+            }
+        )
+    }
+
+    private fun verifyCode() {
+        signInWithPhoneAuthCredential(PhoneAuthProvider.getCredential(viewModel.verificationId.get()!!, viewModel.verificationCode.get()!!))
+    }
+
+    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
+        FirebaseAuth.getInstance().signInWithCredential(credential)
+            .addOnCompleteListener(activity as Activity) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d(TAG, "signInWithCredential:success")
+
+                    val user = task.result?.user
+                    viewModel.onFirebaseSignInSuccess()
+                } else {
+                    // Sign in failed, display a message and update the UI
+                    Log.w(TAG, "signInWithCredential:failure", task.exception)
+                    if (task.exception is FirebaseAuthInvalidCredentialsException) {
+                        // The verification code entered was invalid
+                        viewModel.onFirebaseSignInFailure()
+                    }
+                }
+            }
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(RegistrationViewModel::class.java)
-        viewModel.validator = this
+
+        // Register our ViewModel event handlers
+        viewModel.registrationSuccess.observe(this, EventObserver { ethereumAccountHash ->
+            findNavController().navigate(RegistrationFragmentDirections.actionRegistrationFragmentToRegistrationSuccessFragment(ethereumAccountHash))
+        })
+
+        viewModel.registrationError.observe(this, EventObserver {
+            findNavController().navigate(R.id.action_registrationFragment_to_registrationErrorFragment)
+        })
+
+        viewModel.hideKeyboard.observe(this, EventObserver {
+            hideKeyboard()
+        })
+
+        viewModel.validateForm.observe(this, EventObserver {
+            if (formIsValid()) {
+                viewModel.onLoadingStarted()
+                validatePhoneNumberWithSms()
+            } else {
+                showFormInvalidMessage()
+            }
+        })
+
+        viewModel.validateVerificationCode.observe(this, EventObserver {
+            if (verificationCodeIsValid()) {
+                viewModel.onLoadingStarted()
+                verifyCode()
+            } else {
+                showFormInvalidMessage()
+            }
+        })
+
         binding.viewModel = viewModel
     }
 
 }
+
+private val TAG = RegistrationFragment::class.java.simpleName

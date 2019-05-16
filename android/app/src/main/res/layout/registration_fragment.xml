@@ -18,7 +18,7 @@
 
         <ScrollView
                 android:id="@+id/scrollView"
-                app:hide="@{viewModel.loadingIndicator}"
+                app:hide="@{viewModel.loading || viewModel.verificationId != null}"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -168,8 +168,41 @@
 
         </ScrollView>
 
+        <LinearLayout
+                app:hide="@{viewModel.loading || viewModel.verificationId == null}"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/title_text_size"
+                    android:text="@string/registration_verification_info"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:id="@+id/verificationCodeLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/form_field_margin"
+                    android:hint="@string/registration_verification_code_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/verificationCodeField"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionDone"
+                        android:inputType="text"
+                        android:text="@={viewModel.verificationCode}"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
         <View
-            android:id="@+id/anchor"
+                android:id="@+id/anchor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
 
@@ -186,13 +219,31 @@
                 android:textColor="@android:color/white"
                 android:onClick="@{viewModel.submitClickListener}"
                 android:text="@string/registration_button_sign_up"
-                android:visibility="@{viewModel.loadingIndicator ? View.GONE : View.VISIBLE}"
+                android:visibility="@{viewModel.loading || viewModel.verificationId != null ? View.GONE : View.VISIBLE}"
+                app:icon="@drawable/ic_send"
+                app:layout_anchor="@id/anchor"
+                app:layout_anchorGravity="bottom|right|end"/>
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                android:id="@+id/verifySmsButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginEnd="16dp"
+                android:padding="0dp"
+                android:gravity="center"
+                android:background="@color/colorPrimaryDark"
+                android:textColor="@android:color/white"
+                android:onClick="@{viewModel.verifyCodeClickListener}"
+                android:text="@string/registration_button_verify_code"
+                android:visibility="@{viewModel.loading || viewModel.verificationId == null ? View.GONE : View.VISIBLE}"
                 app:icon="@drawable/ic_send"
                 app:layout_anchor="@id/anchor"
                 app:layout_anchorGravity="bottom|right|end"/>
 
         <LinearLayout
-                app:show="@{viewModel.loadingIndicator}"
+                app:show="@{viewModel.loading}"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -206,7 +257,7 @@
                     />
 
             <TextView
-                    app:show="@{viewModel.loadingIndicator}"
+                    app:show="@{viewModel.loading}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"

@@ -32,5 +32,8 @@
     <string name="overview_show">Show</string>
     <string name="registration_try_again">Try again</string>
     <string name="overview_registered_citizen_title">Registered citizen</string>
+    <string name="registration_button_verify_code">Verify</string>
+    <string name="registration_verification_info">Please enter the verification code sent to your phone number</string>
+    <string name="registration_verification_code_hint">Verification code</string>
 
 </resources>
