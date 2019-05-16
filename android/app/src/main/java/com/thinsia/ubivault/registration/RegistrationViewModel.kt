@@ -9,6 +9,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.thinsia.ubivault.api.CitizensRemoteDataStore
+import com.thinsia.ubivault.domain.Account
+import com.thinsia.ubivault.domain.Profile
+import com.thinsia.ubivault.repository.PreferencesRepository
 import com.thinsia.ubivault.util.Event
 import kotlinx.coroutines.launch
 
@@ -52,6 +55,18 @@ class RegistrationViewModel : ViewModel() {
     val ethereumAccount = ObservableField<String>()
     val phoneNumber = ObservableField<String>()
 
+    init {
+        PreferencesRepository.getProfile()?.let { registration ->
+            firstName.set(registration.firstName)
+            lastName.set(registration.lastName)
+            city.set(registration.lastName)
+            country.set(registration.country)
+            email.set(registration.email)
+            ethereumAccount.set(registration.ethereumAccount?.hash)
+            phoneNumber.set(registration.phoneNumber)
+        }
+    }
+
     private fun validateForm() {
         _hideKeyboard.value = Event(Unit)
         _validateForm.value = Event(Unit)
@@ -63,6 +78,7 @@ class RegistrationViewModel : ViewModel() {
     }
 
     fun onRegisterCitizen() {
+        saveProfile()
         loading.set(true)
         viewModelScope.launch {
             val ethereumAccountHash = ethereumAccount.get()
@@ -91,6 +107,18 @@ class RegistrationViewModel : ViewModel() {
                 _registrationError.value = Event(Unit)
             }
         }
+    }
+
+    private fun saveProfile() {
+        PreferencesRepository.saveProfile(Profile(
+            firstName = firstName.get(),
+            lastName = lastName.get(),
+            city = city.get(),
+            country = country.get(),
+            email = email.get(),
+            ethereumAccount = Account(hash = ethereumAccount.get()!!),
+            phoneNumber = phoneNumber.get()
+        ))
     }
 
     fun onVerificationFailed() {

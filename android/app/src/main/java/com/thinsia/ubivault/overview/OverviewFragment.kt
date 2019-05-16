@@ -28,9 +28,6 @@ class OverviewFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(OverviewViewModel::class.java)
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
-//        viewModel.getRegistration().observe(this, Observer<Registration>{ _ ->
-//            // update UI
-//        })
     }
 
     override fun onResume() {

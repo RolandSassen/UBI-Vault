@@ -1,6 +1,6 @@
 package com.thinsia.ubivault.domain
 
-data class Registration(
+data class Profile(
     var firstName: String? = null,
     var lastName: String? = null,
     var city: String? = null,
