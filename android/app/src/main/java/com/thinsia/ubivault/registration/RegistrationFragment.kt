@@ -63,7 +63,7 @@ class RegistrationFragment : Fragment() {
             if (!hasFocus) validateEthereumAccount()
             hideKeyboardIfNecessary(hasFocus, v)
         }
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
     }
 

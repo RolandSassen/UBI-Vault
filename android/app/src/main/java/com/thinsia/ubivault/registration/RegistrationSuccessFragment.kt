@@ -25,7 +25,7 @@ class RegistrationSuccessFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         PreferencesRepository.saveAccount(Account(args.account))
         binding = com.thinsia.ubivault.databinding.RegistrationSuccessFragmentBinding.inflate(inflater, container, false)
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
     }
 
