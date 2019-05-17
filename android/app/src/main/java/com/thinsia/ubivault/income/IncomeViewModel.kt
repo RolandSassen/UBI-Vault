@@ -21,28 +21,26 @@ class IncomeViewModel : ViewModel() {
         get() = _income
 
     init {
-        PreferencesRepository.getProfile()?.let { profile ->
-            viewModelScope.launch {
-                val response = try {
-                    CitizensRemoteDataStore.getCitizenAsync(profile.ethereumAccount!!.hash).await()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error getting citizen", e)
-                    null
-                }
-
-                _income.value = Income(
-                    balance = response?.balance.toAmount(),
-                    basicIncome = response?.basicIncome.toAmount(),
-                    lastClaimed = response?.lastClaimed.toDisplayDate(),
-                    expectedPaymentAtTime = response?.expectedPaymentAtTime.toDisplayDate()
-                )
+        viewModelScope.launch {
+            val response = try {
+                CitizensRemoteDataStore.getCitizenAsync(PreferencesRepository.getAccount().hash).await()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting citizen", e)
+                null
             }
+
+            _income.value = Income(
+                balance = response?.balance.toAmount(),
+                basicIncome = response?.basicIncome.toAmount(),
+                lastClaimed = response?.lastClaimed.toDisplayDate(),
+                expectedPaymentAtTime = response?.expectedPaymentAtTime.toDisplayDate()
+            )
         }
     }
 
 }
 
-private fun Long?.toDisplayDate(): String? = if (this != null) {
+private fun Long?.toDisplayDate(): String? = if (this != null && this > 0) {
     SimpleDateFormat("EEEE d MMMM yyyy HH:mm", Locale.getDefault()).format(Date(this * 1000L))
 } else {
     "(Unknown)"
