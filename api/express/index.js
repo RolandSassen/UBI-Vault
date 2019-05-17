@@ -21,7 +21,7 @@
   app.post('/registerCitizen', async function(req,res) {
     try {
       let body = req.body
-      let account = body.account
+      let account = helpers.getChecksummedAddress(body.account)
       let phoneNumber = body.phoneNumber
       let secretKey = process.env.SECRETKEY
 
@@ -75,7 +75,7 @@
 
   app.get('/checkCitizen', async function(req, res) {
     try {
-      let account = req.query.account
+      let account = helpers.getChecksummedAddress(req.query.account)
       let registered = false;
       console.log("Citizen %s registered: %s", account, (ubiVault.allCitizens[account] != null).toString());
       res.json({
@@ -91,7 +91,7 @@
 
   app.get('/getCitizen', async function(req, res) {
     try {
-      let account = req.query.account
+      let account = helpers.getChecksummedAddress(req.query.account)
       let dollarCentInWei = await helpers.getDollarCentInWei()
       let date = new Date()
       console.log("getCitizen started", new Date(Date.now()))

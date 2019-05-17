@@ -53,5 +53,10 @@ module.exports = {
 
   getBalance: async function(account) {
     return await web3js.eth.getBalance(account)
+  },
+
+  getChecksummedAddress: function(account) {
+    return web3js.utils.toChecksumAddress(account)
   }
+
 }
