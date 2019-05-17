@@ -75,7 +75,7 @@
 
   app.get('/checkCitizen', async function(req, res) {
     try {
-      let account = req.body.account
+      let account = req.query.account
       let registered = false;
       console.log("Citizen %s registered: %s", account, (ubiVault.allCitizens[account] != null).toString());
       res.json({
@@ -91,7 +91,7 @@
 
   app.get('/getCitizen', async function(req, res) {
     try {
-      let account = req.body.account
+      let account = req.query.account
       let dollarCentInWei = await helpers.getDollarCentInWei()
       let date = new Date()
       console.log("getCitizen started", new Date(Date.now()))
