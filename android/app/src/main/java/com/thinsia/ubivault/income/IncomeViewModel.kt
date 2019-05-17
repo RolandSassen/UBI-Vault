@@ -43,7 +43,7 @@ class IncomeViewModel : ViewModel() {
 }
 
 private fun Long?.toDisplayDate(): String? = if (this != null) {
-    SimpleDateFormat("EEEE d MMMM yyyy HH:mm", Locale.getDefault()).format(Date(this))
+    SimpleDateFormat("EEEE d MMMM yyyy HH:mm", Locale.getDefault()).format(Date(this * 1000L))
 } else {
     "(Unknown)"
 }
