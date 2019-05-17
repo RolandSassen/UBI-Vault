@@ -71,7 +71,10 @@ Applications that are running under PM2 will be restarted automatically if the a
 
 The first thing you will want to do is use the pm2 start command to run the UBI-vault service in the background:
 ```bash
-pm2 start api/express/index.js
+pm2 start api/express/index.js --log-date-format="YYYY-MM-DD HH:mm Z"
+#install log rotate to prevent endless growing log files
+pm2 install pm2-logrotate
+
 ```
 
 The startup subcommand generates and configures a startup script to launch PM2 and its managed processes on server boots:
@@ -118,6 +121,7 @@ The .env file should container a mnemonic and Infurakey (see Installation instru
 # replace <username> with your username
 sudo chown -R <username> /usr/lib/node_modules
 sudo npm install -g truffle
+# somtimes you have to execute these commands twice
 ```
 
 ### Deploy smart contracts
