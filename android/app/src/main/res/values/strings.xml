@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">UBI-Vault</string>
+
+    <!-- Overview -->
+    <string name="overview_sign_up">Sign up</string>
+    <string name="overview_info">Info</string>
+    <string name="overview_my_profile">My profile</string>
+    <string name="overview_my_income">My income</string>
+
+    <!-- Sign up -->
+    <string name="registration_title">Registration</string>
+    <string name="registration_first_name_hint">First name</string>
+    <string name="registration_last_name_hint">Last name</string>
+    <string name="registration_city_hint">City</string>
+    <string name="registration_country_hint">Country</string>
+    <string name="registration_email_hint">E-mail</string>
+    <string name="registration_ethereum_account_hint">Ethereum account</string>
+    <string name="registration_phone_number_hint">Phone number</string>
+    <string name="registration_button_sign_up">Sign up</string>
+    <string name="registration_successful_message">Congratulations!\n\nYou are now registered as a UBI-Vault citizen!</string>
+    <string name="registration_finish">Finish</string>
+    <string name="registration_cancel">Cancel</string>
+    <string name="registration_error_message">We\'re sorry.\n\nUnfortunately we could not register you as a UBI-Vault citizen at the moment.\n\nPlease verify your information and try again.</string>
+    <string name="registration_info">Please fill in all the fields correctly</string>
+    <string name="please_wait_message">Please wait while we register you as citizen.\n\nBare with us, this can take a couple of seconds…</string>
+
+    <!-- SMS authentication -->
+    <string name="activity_sms_authentication_enter_code_hint">Enter code</string>
+    <string name="overview_title">Make your choice</string>
+    <string name="overview_register_title">Register as citizen</string>
+    <string name="overview_more_info_title">More information</string>
+    <string name="overview_show">Show</string>
+    <string name="registration_try_again">Try again</string>
+    <string name="overview_registered_citizen_title">Registered citizen</string>
+    <string name="registration_button_verify_code">Verify</string>
+    <string name="registration_verification_info">Please enter the verification code sent to your phone number</string>
+    <string name="registration_verification_code_hint">Verification code</string>
+
+    <!-- My Profile -->
+    <string name="my_profile_title">My Profile</string>
+
+    <!-- My Income -->
+    <string name="my_income_title">My Income</string>
+    <string name="income_expected_payment_at_time">Expected payment at time</string>
+    <string name="income_balance_label">Balance</string>
+    <string name="income_basic_income">Basic income</string>
+    <string name="income_last_claimed">Last claimed</string>
+
+</resources>

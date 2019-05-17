@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:bind="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+                name="viewModel"
+                type="com.thinsia.ubivault.overview.OverviewViewModel"/>
+    </data>
+
+    <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="16dp"
+            tools:context=".overview.OverviewFragment">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="24dp"
+                android:textSize="28sp"
+                android:text="@string/overview_title"/>
+
+        <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="20sp"
+                android:text="@string/overview_register_title"
+                bind:hide="@{viewModel.accountPresent}"/>
+
+        <Button
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_height="56dp"
+                android:onClick="@{viewModel.registrationClickListener}"
+                android:text="@string/overview_sign_up"
+                bind:hide="@{viewModel.accountPresent}"/>
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="20sp"
+                android:text="@string/overview_registered_citizen_title"
+                bind:show="@{viewModel.accountPresent}"
+                />
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="24dp"
+                android:onClick="@{viewModel.myProfileClickListener}"
+                android:text="@string/overview_my_profile"
+                bind:show="@{viewModel.accountPresent}"
+                />
+
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:onClick="@{viewModel.myIncomeClickListener}"
+                android:text="@string/overview_my_income"
+                bind:show="@{viewModel.accountPresent}"
+                />
+
+        <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                bind:hide="@{viewModel.accountPresent}"/>
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="20sp"
+                android:text="@string/overview_more_info_title"
+                bind:hide="@{viewModel.accountPresent}"/>
+
+        <Button
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:layout_marginTop="24dp"
+                android:onClick="@{viewModel.moreInfoClickListener}"
+                android:text="@string/overview_show"
+                bind:hide="@{viewModel.accountPresent}"/>
+
+        <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2"/>
+
+    </LinearLayout>
+
+</layout>
