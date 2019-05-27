@@ -8,8 +8,13 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.findNavController
 import com.thinsia.ubivault.R
 import com.thinsia.ubivault.domain.Account
+import com.thinsia.ubivault.util.Event
 
 class OverviewViewModel : ViewModel() {
+
+    private val _showInfo = MutableLiveData<Event<Unit>>()
+    val showInfo : LiveData<Event<Unit>>
+        get() = _showInfo
 
     val registrationClickListener = View.OnClickListener { view ->
         view.findNavController().navigate(R.id.action_overviewFragment_to_registrationFragment)
@@ -24,7 +29,7 @@ class OverviewViewModel : ViewModel() {
     }
 
     val moreInfoClickListener = View.OnClickListener { view ->
-//        view.findNavController().navigate(R.id.action_overviewFragment_to_informationFragment)
+        _showInfo.value = Event(Unit)
     }
 
     private val account = MutableLiveData<Account>()
