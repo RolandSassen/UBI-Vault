@@ -57,6 +57,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha05'
     implementation 'androidx.core:core-ktx:1.1.0-beta01'
+    implementation 'androidx.browser:browser:1.0.0'
 
     // https://github.com/Kotlin/kotlinx.coroutines/releases
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
