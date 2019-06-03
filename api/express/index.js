@@ -92,7 +92,7 @@
   app.get('/getCitizen', async function(req, res) {
     try {
       let account = helpers.getChecksummedAddress(req.query.account)
-      let dollarCentInWei = await helpers.getDollarCentInWei()
+      let dollarCentInWei = await helpers.getEuroCentInWei()
       let date = new Date()
       console.log("getCitizen started", new Date(Date.now()))
 
@@ -176,7 +176,7 @@
   cron.schedule("*/30 * * * * *", function() {  //every 30 seconds
     console.log("---------------------");
     console.log("Keep Alive");
-    ubiVault.getDollarCentInWei();
+    ubiVault.getEuroCentInWei();
     helpers.getBalance("0x0000000000000000000000000000000000000000");
   });
 

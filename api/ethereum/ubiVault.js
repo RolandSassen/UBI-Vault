@@ -162,8 +162,8 @@ module.exports = {
   allUBIs: {},
 
   createUBI: async function () {
-    let newDollarCentInWei = await helpers.getDollarCentInWei();
-    // let currentSmartContractDollarCentInWei = await module.exports.getDollarCentInWei()
+    let newDollarCentInWei = await helpers.getEuroCentInWei();
+    // let currentSmartContractDollarCentInWei = await module.exports.getEuroCentInWei()
     // let upperBoundary = 1.05 * currentSmartContractDollarCentInWei
     // let lowerBoundary = 0.95 * currentSmartContractDollarCentInWei
     // if(newDollarCentInWei > upperBoundary) {
@@ -363,7 +363,7 @@ module.exports = {
 
   },
 
-  getDollarCentInWei: async function() {
+  getEuroCentInWei: async function() {
     return contractInstance.methods.dollarCentInWei().call();
   }
 

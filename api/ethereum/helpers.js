@@ -20,11 +20,11 @@ const getProvider = () => {
 var web3js = new web3(getProvider())
 
 module.exports = {
-  getDollarCentInWei: async function() {
+  getEuroCentInWei: async function() {
 //    console.log('getting dollar cent in Wei')
     const rp = require('request-promise')
     var options = {
-        uri: 'https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=USD',
+        uri: 'https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=EUR',
         headers: {
             'User-Agent': 'Request-Promise'
         },
@@ -34,8 +34,8 @@ module.exports = {
     // body[0].price_usd is the price of 1 ether in USD
     try {
       let body = await rp(options)
-      let usdCentPrice = body[0].price_usd * 100
-      return Math.floor(web3js.utils.toWei('1', 'ether') / usdCentPrice)
+      let eurCentPrice = body[0].price_eur * 100
+      return Math.floor(web3js.utils.toWei('1', 'ether') / eurCentPrice)
     }
     catch(err) {
       throw(err)
