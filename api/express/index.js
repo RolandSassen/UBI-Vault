@@ -24,11 +24,12 @@
       let account = helpers.getChecksummedAddress(body.account)
       let phoneNumber = body.phoneNumber
       let secretKey = process.env.SECRETKEY
+      let firebaseURL = process.env.FIREBASEURL
 
       //check if phoneNumber is verified via Firebase Phone Auth
       var options = {
           method: 'POST',
-          uri: 'https://us-central1-axveco-421de.cloudfunctions.net/ubivault/checkPhonenumberVerification',
+          uri: firebaseURL,
           body: {
               key: secretKey.toString(),
               phoneNumber: phoneNumber.toString()
