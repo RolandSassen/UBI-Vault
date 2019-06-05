@@ -59,14 +59,14 @@ async function populateAllcitizens(_contractInstance) {
       break
       case "LogUBICreated":
         let whenCreated = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
-        let adjustedDollarCentInWei = myEvent.returnValues.adjustedDollarCentInWei.toString(10)
+        let adjustedEuroCentInWei = myEvent.returnValues.adjustedEuroCentInWei.toString(10)
         let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei.toString(10)
         let amountOfCitizens = myEvent.returnValues.amountOfCitizens.toString(10)
         let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased.toString(10)
         let paymentsCycle = myEvent.returnValues.paymentsCycle.toString(10)
         module.exports.allUBIs[whenCreated] = {
           "paymentsCycle": paymentsCycle,
-          "adjustedDollarInWei": adjustedDollarCentInWei,
+          "adjustedEuroCentInWei": adjustedEuroCentInWei,
           "totalamountOfBasicIncomeInWei": totalamountOfBasicIncomeInWei,
           "amountOfCitizens": amountOfCitizens,
           "amountOfBasicIncomeCanBeIncreased": amountOfBasicIncomeCanBeIncreased
@@ -111,14 +111,14 @@ function watchForNewEvents(_contractInstance) {
       break
       case "LogUBICreated":
         let whenCreated = await helpers.getTimestampFromBlockHash(myEvent.blockHash)
-        let adjustedDollarCentInWei = myEvent.returnValues.adjustedDollarCentInWei.toString(10)
+        let adjustedEuroCentInWei = myEvent.returnValues.adjustedEuroCentInWei.toString(10)
         let totalamountOfBasicIncomeInWei = myEvent.returnValues.totalamountOfBasicIncomeInWei.toString(10)
         let amountOfCitizens = myEvent.returnValues.amountOfCitizens.toString(10)
         let amountOfBasicIncomeCanBeIncreased = myEvent.returnValues.amountOfBasicIncomeCanBeIncreased.toString(10)
         let paymentsCycle = myEvent.returnValues.paymentsCycle.toString(10)
         module.exports.allUBIs[whenCreated] = {
           "paymentsCycle": paymentsCycle,
-          "adjustedDollarCentInWei": adjustedDollarCentInWei,
+          "adjustedEuroCentInWei": adjustedEuroCentInWei,
           "totalamountOfBasicIncomeInWei": totalamountOfBasicIncomeInWei,
           "amountOfCitizens": amountOfCitizens,
           "amountOfBasicIncomeCanBeIncreased": amountOfBasicIncomeCanBeIncreased
@@ -162,7 +162,7 @@ module.exports = {
   allUBIs: {},
 
   createUBI: async function () {
-    let newDollarCentInWei = await helpers.getEuroCentInWei();
+    let newEuroCentInWei = await helpers.getEuroCentInWei();
     // let currentSmartContractDollarCentInWei = await module.exports.getEuroCentInWei()
     // let upperBoundary = 1.05 * currentSmartContractDollarCentInWei
     // let lowerBoundary = 0.95 * currentSmartContractDollarCentInWei
@@ -172,12 +172,12 @@ module.exports = {
     //   newDollarCentInWei = Math.ceil(lowerBoundary)
     // }
 
-    contractInstance.methods.createUBI(newDollarCentInWei).estimateGas({from: fromAddress})
+    contractInstance.methods.createUBI(newEuroCentInWei).estimateGas({from: fromAddress})
     .then(async function(gasAmount){
 
       console.log("Calling Smart Contract: createUBI")
       try {
-        let encoded = contractInstance.methods.createUBI(newDollarCentInWei).encodeABI()
+        let encoded = contractInstance.methods.createUBI(newEuroCentInWei).encodeABI()
 
         var tx = {
           nonce: web3js.utils.toHex(await getTXCount()),
@@ -356,7 +356,7 @@ module.exports = {
     for(let index in UBIs) {
       let UBI = UBIs[index]
       console.log(UBI)
-      totalDistributed = totalDistributed + (UBI.totalamountOfBasicIncomeInWei / UBI.adjustedDollarInWei)
+      totalDistributed = totalDistributed + (UBI.totalamountOfBasicIncomeInWei / UBI.adjustedEuroInWei)
       console.log(totalDistributed)
     }
     return totalDistributed
@@ -364,7 +364,7 @@ module.exports = {
   },
 
   getEuroCentInWei: async function() {
-    return contractInstance.methods.dollarCentInWei().call();
+    return contractInstance.methods.euroCentInWei().call();
   }
 
 
