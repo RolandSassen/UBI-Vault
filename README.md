@@ -50,12 +50,13 @@ Open a text editor to create a .env file:
 nano .env
 ```
 
-The content of your .env file should be:
+The content of your .env file should be (secretkey can be changed):
 
 ```bash
 MNEMONIC=<<enter your mnemonic>>
 INFURAKEY=<<enter your key from infura>>
 SECRETKEY=3955f06f-6708-492d-a4a5-97f70ed9e960
+FIREBASEURL=https://us-central1-ubi-vault.cloudfunctions.net/ubivault/checkPhonenumberVerification
 ```
 Save file with: CTRL-X then Y and Enter
 
@@ -102,6 +103,47 @@ We can check if the service is running by:
 ```bash
 pm2 list
 ```
+
+## Installation instructions for UBI-vault Firebase Function
+
+### Introduction
+UBI-Vault uses Firebase Phone Authentication for identifying users when they wants to get registered as citizen. Phone Authentication is a standard package and it's easy to implement it in an Android app.
+A Cloud Function is used by the UBI-vault backend to verify if a user's phone number is verified by Firebase.
+
+### Prerequisites
+A Firebase account
+
+### Deploy Cloud Function
+First, go to the folder containing the files
+```bash
+cd UBI-vault
+cd firebase
+```
+
+Then install all dependencies
+```bash
+npm install
+```
+
+Install Cloud Function on Firebase
+```bash
+firebase deploy --only functions
+```
+
+Deploy Cloud Function
+```bash
+#use exactly the same key as defined in the .env file of the UBI-vault backend service
+firebase functions:config:set api.key="THE API KEY" 
+```
+
+Redeploy Cloud Function on Firebase
+```bash
+firebase deploy --only functions
+```
+
+Save the URL of the Cloud Function in the .env file of the UBI-vault backend service
+
+For more information about Firebase, see https://firebase.google.com/docs/functions/get-started 
 
 
 ## Installation instructions for UBI-vault Ethereum smart contract
