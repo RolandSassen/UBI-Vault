@@ -22,7 +22,7 @@
     <string name="registration_cancel">Cancel</string>
     <string name="registration_error_message">We\'re sorry.\n\nUnfortunately we could not register you as a UBI-Vault citizen at the moment.\n\nPlease verify your information and try again.</string>
     <string name="registration_info">Please fill in all the fields correctly</string>
-    <string name="please_wait_message">Please wait while we register you as citizen.\n\nBare with us, this can take a couple of seconds…</string>
+    <string name="please_wait_message">Please wait while we register you as citizen.\n\nBear with us, this can take a couple of seconds…</string>
 
     <!-- SMS authentication -->
     <string name="activity_sms_authentication_enter_code_hint">Enter code</string>
