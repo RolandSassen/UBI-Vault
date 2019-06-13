@@ -196,7 +196,6 @@
     return new Promise(resolve => {
         var promise = ubiVault.getEuroCentInWei()
         Promise.resolve(promise).then((euroCentInWei) => {resolve(true)})
-        //ubiVault.getEuroCentInWei() => resolve(true));  // this setTimeout simulates your async action which sould not exced maxExecutionTime
         setTimeout(() => resolve(false), maxExecutionTime);
     });
   }
