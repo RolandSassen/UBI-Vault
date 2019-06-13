@@ -57,6 +57,11 @@ module.exports = {
 
   getChecksummedAddress: function(account) {
     return web3js.utils.toChecksumAddress(account)
+  },
+
+  reconnectProvider:  function() {
+    web3js = new web3(new web3.providers.WebsocketProvider("wss://ropsten.infura.io/ws/v3/"+infurakey));
   }
+
 
 }

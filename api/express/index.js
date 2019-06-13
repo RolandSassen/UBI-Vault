@@ -185,6 +185,8 @@
       // got a variable back => did not pass maxExecutionTime
     } else {
       console.error('dead')
+      helpers.reconnectProvider()
+      ubiVault.reconnectProvider()
     }
   });
 

@@ -365,6 +365,10 @@ module.exports = {
 
   getEuroCentInWei: async function() {
     return contractInstance.methods.euroCentInWei().call();
+  },
+
+  reconnectProvider:  function() {
+    web3js = new web3(new web3.providers.WebsocketProvider("wss://ropsten.infura.io/ws/v3/"+infurakey));
   }
 
 
