@@ -174,11 +174,36 @@
   //   ubiVault.createUBI();
   // });
 
-  cron.schedule("*/30 * * * * *", function() {  //every 30 seconds
+  cron.schedule("*/30 * * * * *", async function() {  //every 30 seconds
     console.log("---------------------");
     console.log("Keep Alive");
-    ubiVault.getEuroCentInWei();
-    helpers.getBalance("0x0000000000000000000000000000000000000000");
+    var maxExecutionTime = 5000
+    var exced = await getEuroCentInWeiMaxTime(maxExecutionTime);
+    var exced1 = await getBalanceMaxTime(maxExecutionTime, "0x0000000000000000000000000000000000000000");
+    if(exced || exced1) {
+      console.log('alive')
+      // got a variable back => did not pass maxExecutionTime
+    } else {
+      console.error('dead')
+    }
   });
 
   app.listen(3000, () => console.log('App listening on port 3000!'))
+
+
+
+  function getEuroCentInWeiMaxTime(maxExecutionTime) {
+    return new Promise(resolve => {
+        var promise = ubiVault.getEuroCentInWei()
+        Promise.resolve(promise).then((euroCentInWei) => {resolve(true)})
+        setTimeout(() => resolve(false), maxExecutionTime);
+    });
+  }
+
+  function getBalanceMaxTime(maxExecutionTime, addr) {
+    return new Promise(resolve => {
+        var promise = helpers.getBalance(addr)
+        Promise.resolve(promise).then((balance) => {resolve(true)})
+        setTimeout(() => resolve(false), maxExecutionTime);
+    });
+  }
