@@ -177,8 +177,34 @@
   cron.schedule("*/30 * * * * *", function() {  //every 30 seconds
     console.log("---------------------");
     console.log("Keep Alive");
-    ubiVault.getEuroCentInWei();
-    helpers.getBalance("0x0000000000000000000000000000000000000000");
+    var maxExecutionTime = 10000
+    var exced = await getEuroCentInWeiMaxTime(maxExecutionTime);
+    var exced1 = await getBalanceMaxTime(maxExecutionTime, "0x0000000000000000000000000000000000000000");
+    if(exced || exced1) {
+      // got a variable back => did not pass maxExecutionTime
+    } else {
+      console.error('API server is dead')
+    }
   });
 
   app.listen(3000, () => console.log('App listening on port 3000!'))
+
+
+
+  function getEuroCentInWeiMaxTime(maxExecutionTime) {
+    return new Promise(resolve => {
+        ubiVault.getEuroCentInWei() => resolve(true));  // this setTimeout simulates your async action which sould not exced maxExecutionTime
+        setTimeout(() => resolve(false), maxExecutionTime);
+    });
+  }
+
+  function getBalanceMaxTime(maxExecutionTime, addr) {
+    return new Promise(resolve => {
+        helpers.getEuroCentInWei(addr) => resolve(true));  // this setTimeout simulates your async action which sould not exced maxExecutionTime
+        setTimeout(() => resolve(false), maxExecutionTime);
+    });
+  }
+
+//
+// someFunc(1000);
+// someFunc(3000);
