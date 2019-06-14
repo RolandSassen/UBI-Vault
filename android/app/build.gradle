@@ -21,22 +21,23 @@ android {
             storePassword 'android'
         }
         release {
-            // For now... use a production ready keystore for release
-            storeFile rootProject.file('debug.keystore')
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-            storePassword 'android'
+            storeFile rootProject.file('thinsia-upload.keystore')
+            keyAlias 'uploadkey'
+            keyPassword '2oAQ7q@f[QKt'
+            storePassword 'CJZE%9ZdHj(8'
         }
     }
     buildTypes {
         debug {
             applicationIdSuffix '.debug'
             minifyEnabled false
+            buildConfigField 'String', 'BASE_URL', '"http://13.93.94.225:3000/"'
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+            buildConfigField 'String', 'BASE_URL', '"http://backend.ubi-vault.com/"'
         }
     }
     compileOptions {

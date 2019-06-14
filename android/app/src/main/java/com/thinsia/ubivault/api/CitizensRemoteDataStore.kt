@@ -1,6 +1,7 @@
 package com.thinsia.ubivault.api
 
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
+import com.thinsia.ubivault.BuildConfig
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,7 +14,7 @@ import java.util.concurrent.TimeUnit
 object CitizensRemoteDataStore {
 
     private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("http://13.93.94.225:3000/")
+        .baseUrl(BuildConfig.BASE_URL)
         .client(OkHttpClient.Builder()
             .connectTimeout(10L, TimeUnit.SECONDS)
             .callTimeout(60L, TimeUnit.SECONDS)
