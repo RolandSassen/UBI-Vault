@@ -37,7 +37,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
-            buildConfigField 'String', 'BASE_URL', '"http://backend.ubi-vault.com/"'
+            buildConfigField 'String', 'BASE_URL', '"http://backend.ubi-vault.com:3000/"'
         }
     }
     compileOptions {
