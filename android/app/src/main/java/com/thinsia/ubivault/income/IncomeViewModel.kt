@@ -52,7 +52,7 @@ private fun Int?.toAmount(): String? {
     } else {
         val amount = this.toDouble() / 100.0f
         val amountFormatted = amount.format(2)
-        "\$$amountFormatted"
+        "€$amountFormatted"
     }
 }
 
